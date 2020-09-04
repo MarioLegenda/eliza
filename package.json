@@ -1,0 +1,26 @@
+{
+  "name": "eliza",
+  "version": "1.0.0",
+  "main": "dist/eliza.cjs.js",
+  "module": "dist/eliza.esm.js",
+  "browser": "dist/eliza.umd.js",
+  "dependencies": {
+    "rxjs": "^6.6.2",
+    "ts-deepcopy": "^0.1.4"
+  },
+  "devDependencies": {
+    "rollup": "^1.0.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-typescript": "^1.0.0",
+    "ts-node": "^7.0.1",
+    "tslib": "^1.9.3",
+    "typescript": "^3.2.2"
+  },
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "files": [
+    "dist"
+  ]
+}
