@@ -30,7 +30,7 @@ export interface IInternalEventMap<T> {
     [name: string]: IInternalEvent<T>;
 }
 
-export interface InternalDatabaseMap {
+export interface InternalStoreMap {
     [name: string]: IStore[]
 }
 

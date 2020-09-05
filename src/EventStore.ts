@@ -7,7 +7,7 @@ import {
     IEventsToRemove,
     IInternalEvent,
     IInternalGroup,
-    InternalDatabaseMap
+    InternalDatabaseMap, InternalStoreMap
 } from "./contracts";
 
 export interface IEventStore {
@@ -30,7 +30,7 @@ export interface ISubscriberFn<T> {
 
 export default class EventStore implements IEventStore {
     private readonly subscriptions: ISubscriber = {};
-    private readonly databases: InternalDatabaseMap = {};
+    private readonly stores: InternalStoreMap = {};
 
     private readonly eventHandler: EventsHandler = new EventsHandler();
     private readonly groupHandler: GroupHandler = new GroupHandler();
@@ -110,13 +110,13 @@ export default class EventStore implements IEventStore {
     }
 
     private hasDatabase(name: string): boolean {
-        return !!this.databases[name];
+        return !!this.stores[name];
     }
 
     private getDatabase(name: string): IStore[] {
         if (!this.hasDatabase(name)) throw new Error(`Error in EventStore. Database with name '${name}' does not exist. Did you forget to add the second argument to EventStore::register(name: string, withDatabase?: number)?`);
 
-        return this.databases[name];
+        return this.stores[name];
     }
 
     private doCreateEvent(name: string, databases?: IStore[]): void {
@@ -187,12 +187,12 @@ export default class EventStore implements IEventStore {
 
     private addDatabases(databases?: IStore[]): void {
         if (databases) {
-            if (!this.databases[name]) {
-                this.databases[name] = [];
+            if (!this.stores[name]) {
+                this.stores[name] = [];
             }
 
             for (const db of databases) {
-                this.databases[name].push(db);
+                this.stores[name].push(db);
             }
         }
     }
