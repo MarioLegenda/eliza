@@ -39,7 +39,7 @@ export interface ISubscriberFn<T> {
     (arg: T): void;
 }
 
-export default class EventStore implements IEventStore {
+export default class Index implements IEventStore {
     private readonly events: IInternalEventMap<any> = {};
     private readonly subscriptions: ISubscriber = {};
     private readonly databases: InternalDatabaseMap = {};
