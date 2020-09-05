@@ -1,14 +1,8 @@
 import {ReplaySubject} from "rxjs";
-
-export interface InternalGroupMap<T> {
-    [name: string]: IInternalGroup<T>;
-}
-
-export interface IInternalGroup<T> {
-    name: string,
-    events: string[],
-    subject: ReplaySubject<T> | null,
-}
+import {
+    IInternalGroup,
+    InternalGroupMap
+} from "../contracts";
 
 export default class GroupHandler {
     private readonly groups: InternalGroupMap<any> = {};

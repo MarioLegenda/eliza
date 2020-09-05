@@ -1,35 +1,23 @@
 import {ReplaySubject, Subscription} from "rxjs";
 import deepcopy from "ts-deepcopy";
-import IDatabase from "./IDatabase";
-import GroupHandler, {IInternalGroup} from "./handlers/GroupHandler";
+import GroupHandler from "./handlers/GroupHandler";
 import EventsHandler from "./handlers/EventsHandler";
-
-interface IEventsToRemove {
-    [name: string]: string,
-}
-
-interface IInternalEvent<T> {
-    name: string,
-    subject: ReplaySubject<T> | null,
-    database?: IDatabase,
-}
-
-interface IInternalEventMap<T> {
-    [name: string]: IInternalEvent<T>;
-}
-
-interface InternalDatabaseMap {
-    [name: string]: IDatabase[]
-}
+import {
+    IStore,
+    IEventsToRemove,
+    IInternalEvent,
+    IInternalGroup,
+    InternalDatabaseMap
+} from "./contracts";
 
 export interface IEventStore {
-    register(name: string, databases?: IDatabase[]): void;
+    register(name: string, databases?: IStore[]): void;
     subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     destroy(name: string): void;
-    snapshot(name: string): IDatabase[];
-    group(name: string, events: string[], databases?: IDatabase[]): void;
+    snapshot(name: string): IStore[];
+    group(name: string, events: string[], databases?: IStore[]): void;
 }
 
 export interface ISubscriber {
@@ -49,7 +37,7 @@ export default class EventStore implements IEventStore {
 
     public static readonly COMPLETE_DATA = 2;
 
-    register(name: string, databases?: IDatabase[]): void {
+    register(name: string, databases?: IStore[]): void {
         if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' already exists`);
 
         if (this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Event with name '${name}' already exists as a group`);
@@ -89,7 +77,7 @@ export default class EventStore implements IEventStore {
         const events: string[] = Object.keys(eventsToRemove);
 
         for (const event of events) {
-            const databases: IDatabase[] = this.getDatabase(event);
+            const databases: IStore[] = this.getDatabase(event);
             const discriminatorField: string = eventsToRemove[event];
 
             for (const db of databases) {
@@ -108,11 +96,11 @@ export default class EventStore implements IEventStore {
         (this.subscriptions[name] as Subscription).unsubscribe();
     }
 
-    snapshot(name: string): IDatabase[] {
+    snapshot(name: string): IStore[] {
         return this.getDatabase(name);
     }
 
-    group(name: string, events: string[], databases?: IDatabase[]): void {
+    group(name: string, events: string[], databases?: IStore[]): void {
         if (this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Group with name '${name}' already exists`);
         if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Group with name '${name}' already exists as an event`);
 
@@ -125,13 +113,13 @@ export default class EventStore implements IEventStore {
         return !!this.databases[name];
     }
 
-    private getDatabase(name: string): IDatabase[] {
+    private getDatabase(name: string): IStore[] {
         if (!this.hasDatabase(name)) throw new Error(`Error in EventStore. Database with name '${name}' does not exist. Did you forget to add the second argument to EventStore::register(name: string, withDatabase?: number)?`);
 
         return this.databases[name];
     }
 
-    private doCreateEvent(name: string, databases?: IDatabase[]): void {
+    private doCreateEvent(name: string, databases?: IStore[]): void {
         this.eventHandler.addEvent(name);
 
         this.addDatabases(databases);
@@ -144,7 +132,7 @@ export default class EventStore implements IEventStore {
         event.subject.next(copy);
 
         if (this.hasDatabase(name)) {
-            const databases: IDatabase[] = this.getDatabase(name);
+            const databases: IStore[] = this.getDatabase(name);
 
             for (const db of databases) {
                 db.put<T>(name, data);
@@ -163,7 +151,7 @@ export default class EventStore implements IEventStore {
         group.subject.next(copy);
 
         if (this.hasDatabase(name)) {
-            const databases: IDatabase[] = this.getDatabase(name);
+            const databases: IStore[] = this.getDatabase(name);
 
             for (const db of databases) {
                 db.put<T>(name, data, group.name);
@@ -197,7 +185,7 @@ export default class EventStore implements IEventStore {
         this.subscriptions[name] = (group.subject as ReplaySubject<T>).subscribe(fn);
     }
 
-    private addDatabases(databases?: IDatabase[]): void {
+    private addDatabases(databases?: IStore[]): void {
         if (databases) {
             if (!this.databases[name]) {
                 this.databases[name] = [];
