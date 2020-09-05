@@ -7,16 +7,14 @@ import {
     IEventsToRemove,
     IInternalEvent,
     IInternalGroup,
-    InternalStoreMap,
     ISubscriberFn,
-    ISubscriber,
     IEventStore
 } from "./contracts";
 import StoreHandler from "./handlers/StoreHandler";
+import SubscriptionsHandler from "./handlers/SubscriptionsHandler";
 
 export default class EventStore implements IEventStore {
-    private readonly subscriptions: ISubscriber = {};
-
+    private readonly subscriptionHandler: SubscriptionsHandler = new SubscriptionsHandler();
     private readonly storeHandler: StoreHandler = new StoreHandler();
     private readonly eventHandler: EventsHandler = new EventsHandler();
     private readonly groupHandler: GroupHandler = new GroupHandler();
@@ -63,10 +61,10 @@ export default class EventStore implements IEventStore {
         const events: string[] = Object.keys(eventsToRemove);
 
         for (const event of events) {
-            const databases: IStore[] = this.getDatabase(event);
+            const stores: IStore[] = this.storeHandler.getStore(event);
             const discriminatorField: string = eventsToRemove[event];
 
-            for (const db of databases) {
+            for (const db of stores) {
                 db.remove(eventsToRemove[event], data[discriminatorField]);
             }
         }
@@ -75,11 +73,11 @@ export default class EventStore implements IEventStore {
     }
 
     destroy(name: string): void {
-        if (!this.subscriptions[name]) {
+        if (!this.subscriptionHandler.hasSubscription(name)) {
             throw new Error(`Cannot destroy a subscription with name '${name}'. Subscription does not exist`);
         }
 
-        (this.subscriptions[name] as Subscription).unsubscribe();
+        this.subscriptionHandler.getSubscription(name).unsubscribe();
     }
 
     snapshot(name: string): IStore[] {
@@ -139,16 +137,20 @@ export default class EventStore implements IEventStore {
         const event: IInternalEvent<T> = this.eventHandler.getPublishableEvent<T>(name);
 
         if (filter === EventStore.COMPLETE_DATA) {
-            this.subscriptions[name] = (event.subject as ReplaySubject<T>).subscribe(() => {
+            const s: Subscription = (event.subject as ReplaySubject<T>).subscribe(() => {
                 const entries = this.storeHandler.getStore(name)
 
                 fn.call(null, entries as any);
             });
 
+            this.subscriptionHandler.addSubscription(name, s);
+
             return;
         }
 
-        this.subscriptions[name] = (event.subject as ReplaySubject<T>).subscribe(fn);
+        const s: Subscription = (event.subject as ReplaySubject<T>).subscribe(fn);
+
+        this.subscriptionHandler.addSubscription(name, s);
     }
 
     private doGroupSubscription<T>(name: string, fn: ISubscriberFn<T>) {
@@ -158,6 +160,8 @@ export default class EventStore implements IEventStore {
             group.subject = new ReplaySubject<T>();
         }
 
-        this.subscriptions[name] = (group.subject as ReplaySubject<T>).subscribe(fn);
+        const s: Subscription = (group.subject as ReplaySubject<T>).subscribe(fn);
+
+        this.subscriptionHandler.addSubscription(name, s);
     }
 }
