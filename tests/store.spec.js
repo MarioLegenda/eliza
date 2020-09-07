@@ -99,19 +99,7 @@ describe("Store tests", () => {
     it('should remove multiple events on publishRemove', (done) => {
         const eventStore = eliza.New();
         const events = ['event1', 'event2', 'event3'];
-
-        const hits = {
-            event1: false,
-            event2: false,
-            event3: false,
-        }
-
-        let isPublishRemoveSent = false;
-
-        const areAllHit = function allHit() {
-            return hits.event1 && hits.event2 && hits.event3;
-        }
-
+        
         for (const event of events) {
             eventStore.register(event, [
                 new ObjectStore()
