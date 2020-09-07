@@ -58,14 +58,13 @@ export default class EventStore implements IEventStore {
     }
 
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove) {
-        const events: string[] = Object.keys(eventsToRemove);
-
-        for (const event of events) {
+        for (const event of eventsToRemove) {
             const stores: IStore[] = this.storeHandler.getStore(event);
-            const discriminatorField: string = eventsToRemove[event];
+
+            const groupName = (this.groupHandler.eventHasGroup(name)) ? this.groupHandler.getGroupsFromEvent(name) : [];
 
             for (const db of stores) {
-                db.remove(eventsToRemove[event], data[discriminatorField]);
+                db.remove(event, data, groupName);
             }
         }
 
@@ -90,13 +89,13 @@ export default class EventStore implements IEventStore {
 
         this.groupHandler.addGroup(name, events);
 
-        this.storeHandler.addStores(databases);
+        this.storeHandler.addStores(name, databases);
     }
 
     private doCreateEvent(name: string, stores?: IStore[]): void {
         this.eventHandler.addEvent(name);
 
-        this.storeHandler.addStores(stores);
+        this.storeHandler.addStores(name, stores);
     }
 
     private doPublishEvent<T>(name: string, data: T): void {

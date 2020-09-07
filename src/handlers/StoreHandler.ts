@@ -6,7 +6,7 @@ import {
 export default class StoreHandler {
     private readonly stores: InternalStoreMap = {};
 
-    addStores(stores?: IStore[]) {
+    addStores(name: string, stores?: IStore[]) {
         if (stores) {
             if (!this.stores[name]) {
                 this.stores[name] = [];

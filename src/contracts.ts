@@ -12,7 +12,7 @@ export interface IEventStore {
 
 export interface IStore {
     put<T>(eventName: string, value: T, groupName?: string): void;
-    remove(eventName: string, value: any, groupName?: string): boolean;
+    remove(eventName: string, value: any, groupName?: string[]): boolean;
     get(): any;
 }
 
