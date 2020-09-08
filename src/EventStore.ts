@@ -52,7 +52,7 @@ export default class EventStore implements IEventStore {
             const groups: string[] = this.groupHandler.getGroupsFromEvent(name);
 
             for (const groupName of groups) {
-                this.doPublishGroup<T>(groupName, data);
+                this.doPublishGroup<T>(name, groupName, data);
             }
         }
     }
@@ -113,23 +113,33 @@ export default class EventStore implements IEventStore {
         }
     }
 
-    private doPublishGroup<T>(name: string, data: T): void {
-        const group: IInternalGroup<T> = this.groupHandler.getGroup(name);
+    private doPublishGroup<T>(name: string, groupName: string, data: T): void {
+        const group: IInternalGroup<T> = this.groupHandler.getGroup(groupName);
 
         if (!group.subject) {
             group.subject = new ReplaySubject<T>();
         }
 
-        const copy = deepcopy<T>(data);
-        group.subject.next(copy);
-
+        // store the value in the event name stores
         if (this.storeHandler.hasStore(name)) {
             const databases: IStore[] = this.storeHandler.getStore(name);
 
             for (const db of databases) {
-                db.put<T>(name, data, group.name);
+                db.put<T>(name, deepcopy<T>(data), group.name);
             }
         }
+
+        // store the value in the group store
+        if (this.storeHandler.hasStore(groupName)) {
+            const databases: IStore[] = this.storeHandler.getStore(groupName);
+
+            for (const db of databases) {
+                db.put<T>(name, deepcopy<T>(data), group.name);
+            }
+        }
+
+        const copy = deepcopy<T>(data);
+        group.subject.next(copy);
     }
 
     private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void {
