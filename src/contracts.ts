@@ -1,13 +1,13 @@
 import {ReplaySubject, Subscription} from "rxjs";
 
 export interface IEventStore {
-    register(name: string, databases?: IStore[]): void;
+    register(name: string, stores?: IStore[]): void;
     subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     destroy(name: string): void;
     snapshot(name: string): IStore[];
-    group(name: string, events: string[], databases?: IStore[]): void;
+    group(name: string, events: string[], stores?: IStore[]): void;
 }
 
 export interface IStore {
@@ -23,7 +23,7 @@ export interface IEventsToRemove {
 export interface IInternalEvent<T> {
     name: string,
     subject: ReplaySubject<T> | null,
-    database?: IStore,
+    store?: IStore,
 }
 
 export interface IInternalEventMap<T> {
@@ -33,7 +33,7 @@ export interface IInternalEventMap<T> {
 export interface IInternalEvent<T> {
     name: string,
     subject: ReplaySubject<T> | null,
-    database?: IStore,
+    store?: IStore,
 }
 
 export interface IInternalEventMap<T> {

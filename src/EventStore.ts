@@ -1,7 +1,6 @@
 import {ReplaySubject, Subscription} from "rxjs";
 import deepcopy from "ts-deepcopy";
-import GroupHandler from "./handlers/GroupHandler";
-import EventsHandler from "./handlers/EventsHandler";
+
 import {
     IStore,
     IEventsToRemove,
@@ -10,8 +9,11 @@ import {
     ISubscriberFn,
     IEventStore
 } from "./contracts";
+
 import StoreHandler from "./handlers/StoreHandler";
 import SubscriptionsHandler from "./handlers/SubscriptionsHandler";
+import GroupHandler from "./handlers/GroupHandler";
+import EventsHandler from "./handlers/EventsHandler";
 
 export default class EventStore implements IEventStore {
     private readonly subscriptionHandler: SubscriptionsHandler = new SubscriptionsHandler();
@@ -83,13 +85,13 @@ export default class EventStore implements IEventStore {
         return this.storeHandler.getStore(name);
     }
 
-    group(name: string, events: string[], databases?: IStore[]): void {
+    group(name: string, events: string[], stores?: IStore[]): void {
         if (this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Group with name '${name}' already exists`);
         if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Group with name '${name}' already exists as an event`);
 
         this.groupHandler.addGroup(name, events);
 
-        this.storeHandler.addStores(name, databases);
+        this.storeHandler.addStores(name, stores);
     }
 
     private doCreateEvent(name: string, stores?: IStore[]): void {
@@ -105,9 +107,9 @@ export default class EventStore implements IEventStore {
         event.subject.next(copy);
 
         if (this.storeHandler.hasStore(name)) {
-            const databases: IStore[] = this.storeHandler.getStore(name);
+            const stores: IStore[] = this.storeHandler.getStore(name);
 
-            for (const db of databases) {
+            for (const db of stores) {
                 db.put<T>(name, data);
             }
         }
@@ -122,19 +124,19 @@ export default class EventStore implements IEventStore {
 
         // store the value in the event name stores
         if (this.storeHandler.hasStore(name)) {
-            const databases: IStore[] = this.storeHandler.getStore(name);
+            const stores: IStore[] = this.storeHandler.getStore(name);
 
-            for (const db of databases) {
-                db.put<T>(name, deepcopy<T>(data), group.name);
+            for (const store of stores) {
+                store.put<T>(name, deepcopy<T>(data), group.name);
             }
         }
 
         // store the value in the group store
         if (this.storeHandler.hasStore(groupName)) {
-            const databases: IStore[] = this.storeHandler.getStore(groupName);
+            const stores: IStore[] = this.storeHandler.getStore(groupName);
 
-            for (const db of databases) {
-                db.put<T>(name, deepcopy<T>(data), group.name);
+            for (const store of stores) {
+                store.put<T>(name, deepcopy<T>(data), group.name);
             }
         }
 
