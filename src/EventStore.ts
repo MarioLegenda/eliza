@@ -73,14 +73,6 @@ export default class EventStore implements IEventStore {
         this.publish<T>(name, data);
     }
 
-    destroy(name: string): void {
-        if (!this.subscriptionHandler.hasSubscription(name)) {
-            throw new Error(`Cannot destroy a subscription with name '${name}'. Subscription does not exist`);
-        }
-
-        this.subscriptionHandler.getSubscription(name).unsubscribe();
-    }
-
     snapshot(name: string): IStore[] {
         return this.storeHandler.getStore(name);
     }

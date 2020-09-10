@@ -5,7 +5,6 @@ export interface IEventStore {
     subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
-    destroy(name: string): void;
     snapshot(name: string): IStore[];
     group(name: string, events: string[], stores?: IStore[]): void;
 }
