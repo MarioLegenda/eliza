@@ -11,12 +11,10 @@ import {
 } from "./contracts";
 
 import StoreHandler from "./handlers/StoreHandler";
-import SubscriptionsHandler from "./handlers/SubscriptionsHandler";
 import GroupHandler from "./handlers/GroupHandler";
 import EventsHandler from "./handlers/EventsHandler";
 
 export default class EventStore implements IEventStore {
-    private readonly subscriptionHandler: SubscriptionsHandler = new SubscriptionsHandler();
     private readonly storeHandler: StoreHandler = new StoreHandler();
     private readonly eventHandler: EventsHandler = new EventsHandler();
     private readonly groupHandler: GroupHandler = new GroupHandler();
@@ -31,15 +29,15 @@ export default class EventStore implements IEventStore {
         this.doCreateEvent(name, stores);
     }
 
-    subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void {
+    subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): Subscription {
         if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Event or group with name '${name}' do not exist`);
 
         if (this.eventHandler.hasEvent(name)) {
-            this.doEventSubscription<T>(name, fn, filter);
+            return this.doEventSubscription<T>(name, fn, filter);
         }
 
         if (this.groupHandler.groupExists(name)) {
-            this.doGroupSubscription<T>(name, fn);
+            return this.doGroupSubscription<T>(name, fn);
         }
     }
 
@@ -136,7 +134,7 @@ export default class EventStore implements IEventStore {
         group.subject.next(copy);
     }
 
-    private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void {
+    private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>, filter?: number): Subscription {
         const event: IInternalEvent<T> = this.eventHandler.getPublishableEvent<T>(name);
 
         if (filter === EventStore.COMPLETE_DATA) {
@@ -146,25 +144,19 @@ export default class EventStore implements IEventStore {
                 fn.call(null, entries as any);
             });
 
-            this.subscriptionHandler.addSubscription(name, s);
-
-            return;
+            return s;
         }
 
-        const s: Subscription = (event.subject as ReplaySubject<T>).subscribe(fn);
-
-        this.subscriptionHandler.addSubscription(name, s);
+        return (event.subject as ReplaySubject<T>).subscribe(fn);
     }
 
-    private doGroupSubscription<T>(name: string, fn: ISubscriberFn<T>) {
+    private doGroupSubscription<T>(name: string, fn: ISubscriberFn<T>): Subscription {
         const group: IInternalGroup<T> = this.groupHandler.getGroup<T>(name);
 
         if (!group.subject) {
             group.subject = new ReplaySubject<T>();
         }
 
-        const s: Subscription = (group.subject as ReplaySubject<T>).subscribe(fn);
-
-        this.subscriptionHandler.addSubscription(name, s);
+        return (group.subject as ReplaySubject<T>).subscribe(fn);
     }
 }

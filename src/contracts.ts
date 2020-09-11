@@ -2,7 +2,7 @@ import {ReplaySubject, Subscription} from "rxjs";
 
 export interface IEventStore {
     register(name: string, stores?: IStore[]): void;
-    subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void;
+    subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): Subscription;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     snapshot(name: string): IStore[];
