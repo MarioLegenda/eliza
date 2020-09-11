@@ -22,6 +22,9 @@ A simple call to `Eliza.New()` will create a new event store. That means that
 you can have multiple event stores since a call to `Eliza.New()` always creates
 a new event store.
 
+**All of the examples in this documentation do not unsubscribe from created subscriptions
+for brevity. Be sure to read the last section Destroying events.**
+
 #### Working with events
 
 Eliza implements the following interface:
@@ -32,7 +35,6 @@ expot interface IEventStore {
     subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): void;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
-    destroy(name: string): void;
     snapshot(name: string): IStore[];
     group(name: string, events: string[], databases?: IStore[]): void;
 }
@@ -279,38 +281,23 @@ Eliza uses rxjs to publish and subscribe to events. Because of that,
 after you subscribe to an event, a rxjs `Subscription` is called. Rxjs subscriptions
 are not destroyed automatically. It is your responsibility to destroy (unsubscribe) them. 
 
-Forgetting this could be a problem with React, for example. If you subscribe to an event
-in a React component, when that component is unmounted (destroyed), the subscription still exists and
-if you publish to it, you will get an error that goes something like `cannot change state of an unmounted component` 
-(given that you change the state of the component in a subscription). Because of that, do not forget
-to destroy the subscription after you are done with the component that you are using it in. That goes
-for every frontend framework out there, as far as I know. Failing to unsubscribe **will result in a memory leak**.
+After you subscribe, a `Subscription` is returned. It is your responsibility to unsubscribe from that 
+subscription.
 
-Eliza creates a subscription when you call `IEventStore::subscribe` so you don't have
-to destroy it if you haven't done that. 
-
-Eliza has a method called `IEventStore::destroy`. Call it to destroy an event with the event name
-as its only argument.
-
-`````typescript
+````typescript
 import Eliza from "eliza";
 
 const eventStore: IEventStore = Eliza.New();
 
-// at this point, no need to call IEventStore::destroy
-// since a subscription is not created yet
-eventStore.register('event1');
+eventStore.register('event', [
+    new ObjectStore(),
+]);
 
-// still not needed to call IEventStore::destory since
-// subscription is not created yet.
-eventStore.publish('event1', {});
+eventStore.publish('event', {});
 
-// subscription is now created and you must destroy it now
-eventStore.subscribe('event1', () => {
+const subscription: Subscription = eventStore.subscribe('event', () => {
 
-}); 
+});
 
-// subscription destroyed
-eventStore.destory('event1');
-
+subscription.unsubscribe();
 ````
