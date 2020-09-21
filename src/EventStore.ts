@@ -13,13 +13,12 @@ import {
 import StoreHandler from "./handlers/StoreHandler";
 import GroupHandler from "./handlers/GroupHandler";
 import EventsHandler from "./handlers/EventsHandler";
+import {OperatorFunction} from "rxjs/src/internal/types";
 
 export default class EventStore implements IEventStore {
     private readonly storeHandler: StoreHandler = new StoreHandler();
     private readonly eventHandler: EventsHandler = new EventsHandler();
     private readonly groupHandler: GroupHandler = new GroupHandler();
-
-    public static readonly COMPLETE_DATA = 2;
 
     register(name: string, stores?: IStore[]): void {
         if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' already exists`);
@@ -29,11 +28,11 @@ export default class EventStore implements IEventStore {
         this.doCreateEvent(name, stores);
     }
 
-    subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): Subscription {
+    subscribe<T>(name: string, fn: ISubscriberFn<T>, op?: OperatorFunction<T, any>): Subscription {
         if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Event or group with name '${name}' do not exist`);
 
         if (this.eventHandler.hasEvent(name)) {
-            return this.doEventSubscription<T>(name, fn, filter);
+            return this.doEventSubscription<T>(name, fn, op);
         }
 
         if (this.groupHandler.groupExists(name)) {
@@ -134,17 +133,11 @@ export default class EventStore implements IEventStore {
         group.subject.next(copy);
     }
 
-    private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>, filter?: number): Subscription {
+    private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>, op?: OperatorFunction<T, any>): Subscription {
         const event: IInternalEvent<T> = this.eventHandler.getPublishableEvent<T>(name);
 
-        if (filter === EventStore.COMPLETE_DATA) {
-            const s: Subscription = (event.subject as ReplaySubject<T>).subscribe(() => {
-                const entries = this.storeHandler.getStore(name)
-
-                fn.call(null, entries as any);
-            });
-
-            return s;
+        if (op) {
+            return (event.subject as ReplaySubject<T>).pipe(op).subscribe(fn);
         }
 
         return (event.subject as ReplaySubject<T>).subscribe(fn);

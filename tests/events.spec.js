@@ -1,6 +1,7 @@
 const mocha = require('mocha');
 const chai = require('chai');
 const assert = require('assert');
+const {map} = require('rxjs/operators');
 
 const it = mocha.it;
 const describe = mocha.describe;
@@ -40,6 +41,23 @@ describe('Events', function() {
             expect(event).to.be.equal(eventValue);
             done();
         });
+
+        eventStore.publish(eventName, eventValue);
+    });
+
+    it('should apply an rxjs operator to a subscription result', (done) => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        eventStore.subscribe(eventName, (event) => {
+            expect(event).to.be.equal('new value');
+            done();
+        }, map(() => {
+            return 'new value';
+        }));
 
         eventStore.publish(eventName, eventValue);
     });

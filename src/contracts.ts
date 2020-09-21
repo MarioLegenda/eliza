@@ -1,8 +1,8 @@
-import {ReplaySubject, Subscription} from "rxjs";
+import {OperatorFunction, ReplaySubject, Subscription} from "rxjs";
 
 export interface IEventStore {
     register(name: string, stores?: IStore[]): void;
-    subscribe<T>(name: string, fn: ISubscriberFn<T>, filter?: number): Subscription;
+    subscribe<T>(name: string, fn: ISubscriberFn<T>, op?: OperatorFunction<T, any>): Subscription;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     snapshot(name: string): IStore[];
