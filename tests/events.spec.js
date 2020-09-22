@@ -1,11 +1,10 @@
 const mocha = require('mocha');
 const chai = require('chai');
-const assert = require('assert');
-const {map} = require('rxjs/operators');
 
 const it = mocha.it;
 const describe = mocha.describe;
 const expect = chai.expect;
+const {map} = require('rxjs/operators');
 
 const eliza = require('../dist/eliza.cjs');
 

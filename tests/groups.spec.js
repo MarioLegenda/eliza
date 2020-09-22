@@ -1,6 +1,6 @@
 const mocha = require('mocha');
 const chai = require('chai');
-const assert = require('assert');
+const {map} = require('rxjs/operators');
 
 const it = mocha.it;
 const describe = mocha.describe;
@@ -111,5 +111,36 @@ describe('Groups', function() {
         eventStore.publish('event3', {name: 'event3'});
         eventStore.publish('event3', {name: 'event3'});
         eventStore.publish('event3', {name: 'event3'});
+    });
+
+    it('should apply an rxjs operator to a group subscription result', (done) => {
+        const event1 = 'event1';
+        const event2 = 'event2';
+        const eventValue = 'eventValue';
+
+        let values = [];
+
+        const eventStore = eliza.New();
+        eventStore.register(event1);
+        eventStore.register(event2);
+
+        eventStore.group('group', [event1, event2]);
+
+        eventStore.subscribe('group', (val) => {
+            values.push(val);
+
+            if (values.length === 2) {
+                expect(values.length).to.be.equal(2);
+                expect(values[0]).to.be.equal('new value');
+                expect(values[1]).to.be.equal('new value');
+
+                done();
+            }
+        }, map(() => {
+            return 'new value';
+        }));
+
+        eventStore.publish('event1', eventValue);
+        eventStore.publish('event2', eventValue);
     });
 });

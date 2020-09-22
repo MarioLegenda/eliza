@@ -36,7 +36,7 @@ export default class EventStore implements IEventStore {
         }
 
         if (this.groupHandler.groupExists(name)) {
-            return this.doGroupSubscription<T>(name, fn);
+            return this.doGroupSubscription<T>(name, fn, op);
         }
     }
 
@@ -143,11 +143,19 @@ export default class EventStore implements IEventStore {
         return (event.subject as ReplaySubject<T>).subscribe(fn);
     }
 
-    private doGroupSubscription<T>(name: string, fn: ISubscriberFn<T>): Subscription {
+    private doGroupSubscription<T>(
+        name: string,
+        fn: ISubscriberFn<T>,
+        op?: OperatorFunction<T, any>
+    ): Subscription {
         const group: IInternalGroup<T> = this.groupHandler.getGroup<T>(name);
 
         if (!group.subject) {
             group.subject = new ReplaySubject<T>();
+        }
+
+        if (op) {
+            return (group.subject as ReplaySubject<T>).pipe(op).subscribe(fn);
         }
 
         return (group.subject as ReplaySubject<T>).subscribe(fn);
