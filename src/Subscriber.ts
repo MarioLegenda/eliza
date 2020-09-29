@@ -1,14 +1,14 @@
-import {ISubscriberFn} from "./contracts";
+import {IDataBuffer, ISubscriberFn} from "./contracts";
 import SubscriptionMap from "./SubscriptionMap";
 
 export default class Subscriber {
     private empty: boolean = true;
 
-    private buffer: any[] = [];
+    private buffer: IDataBuffer<any> = [];
 
     constructor(private readonly map: SubscriptionMap) {}
 
-    subscribe(fn: ISubscriberFn<any>): symbol {
+    subscribe<T>(fn: ISubscriberFn<T>): symbol {
         const key: symbol = Symbol();
         this.map.add(key, fn);
 
@@ -19,7 +19,7 @@ export default class Subscriber {
         return key;
     }
 
-    publish(data: any = undefined): void {
+    publish<T>(data: T): void {
         if (this.empty) {
             this.buffer.push(data);
 

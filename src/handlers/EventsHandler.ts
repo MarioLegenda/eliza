@@ -28,7 +28,7 @@ export default class EventsHandler {
         this.events[name] = evn;
     }
 
-    getEvent<T>(name: string): IInternalEvent {
+    getEvent(name: string): IInternalEvent {
         if (!this.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
 
         return this.events[name];

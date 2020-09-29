@@ -2,7 +2,7 @@ import Subscriber from "./Subscriber";
 
 export interface IEventStore {
     register(name: string, stores?: IStore[]): void;
-    subscribe<T>(name: string, fn: ISubscriberFn<T>): Subscription;
+    subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     snapshot(name: string): IStore[];
@@ -54,4 +54,10 @@ export interface InternalSubscriberMap {
 
 export interface ISubscriberFn<T> {
     (arg: T): void;
+}
+
+export interface IDataBuffer<T> {
+    [idx: number]: any,
+    length: number,
+    push: (...[]: any) => void,
 }

@@ -84,8 +84,8 @@ export default class EventStore implements IEventStore {
         }
     }
 
-    snapshot(name: string): IStore[] {
-        return this.storeHandler.getStore(name);
+    snapshot<T>(name: string): IStore[] {
+        return this.storeHandler.getStore<T>(name);
     }
 
     group(name: string, events: string[], stores?: IStore[]): void {
@@ -97,7 +97,7 @@ export default class EventStore implements IEventStore {
         this.storeHandler.addStores(name, stores);
     }
 
-    destroy(key: symbol) {
+    destroy(key: symbol): void {
         this.subscriptionCollection.destroy(key);
     }
 
@@ -121,7 +121,7 @@ export default class EventStore implements IEventStore {
         }
 
         const copy = deepcopy<T>(data);
-        event.subscriber.publish(copy);
+        event.subscriber.publish<T>(copy);
     }
 
     private doPublishGroup<T>(name: string, groupName: string, data: T, noStore: boolean = false): void {
@@ -148,13 +148,13 @@ export default class EventStore implements IEventStore {
         }
 
         const copy = deepcopy<T>(data);
-        group.subscriber.publish(copy);
+        group.subscriber.publish<T>(copy);
     }
 
     private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>): symbol {
         const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
 
-        return event.subscriber.subscribe(fn);
+        return event.subscriber.subscribe<T>(fn);
     }
 
     private doGroupSubscription<T>(
@@ -163,6 +163,6 @@ export default class EventStore implements IEventStore {
     ): symbol {
         const group: IInternalGroup = this.groupHandler.getGroup<T>(name);
 
-        return group.subscriber.subscribe(fn);
+        return group.subscriber.subscribe<T>(fn);
     }
 }
