@@ -3,9 +3,10 @@ import StoreHandler from "./handlers/StoreHandler";
 import EventsHandler from "./handlers/EventsHandler";
 import GroupHandler from "./handlers/GroupHandler";
 import SubscriberCollection from "./SubscriberCollection";
+import {IEventStore} from "./contracts";
 
 export default class Eliza {
-    static New(): EventStore {
+    static New(): IEventStore {
         const subscriptionCollection = new SubscriberCollection();
 
         return new EventStore(
