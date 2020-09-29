@@ -19,7 +19,7 @@ export default class StoreHandler {
     }
 
     getStore(name: string): IStore[] {
-        if (!this.hasStore(name)) throw new Error(`Error in EventStore. Store with name '${name}' does not exist. Did you forget to add the second argument to EventStore::register(name: string, stores?: IStore)?`);
+        if (!this.hasStore(name)) throw new Error(`Error in Eliza. Store with name '${name}' does not exist. Did you forget to add the second argument to EventStore::register(name: string, stores?: IStore)?`);
 
         return this.stores[name];
     }

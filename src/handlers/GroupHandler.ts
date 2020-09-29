@@ -48,7 +48,7 @@ export default class GroupHandler {
     }
 
     public getGroup<T>(name: string): IInternalGroup {
-        if (!this.groupExists(name)) throw new Error(`Error in EventStore. Group with name '${name}' does not exist`);
+        if (!this.groupExists(name)) throw new Error(`Error in Eliza. Group with name '${name}' does not exist`);
 
         return this.groups[name];
     }

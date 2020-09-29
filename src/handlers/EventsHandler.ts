@@ -29,7 +29,7 @@ export default class EventsHandler {
     }
 
     getEvent<T>(name: string): IInternalEvent {
-        if (!this.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' does not exist`);
+        if (!this.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
 
         return this.events[name];
     }

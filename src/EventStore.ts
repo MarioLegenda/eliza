@@ -23,15 +23,15 @@ export default class EventStore implements IEventStore {
     ) {}
 
     register(name: string, stores?: IStore[]): void {
-        if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' already exists`);
+        if (this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' already exists`);
 
-        if (this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Event with name '${name}' already exists as a group`);
+        if (this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event with name '${name}' already exists as a group`);
 
         this.doCreateEvent(name, stores);
     }
 
     subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol {
-        if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Event or group with name '${name}' do not exist`);
+        if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event or group with name '${name}' do not exist`);
 
         if (this.eventHandler.hasEvent(name)) {
             return this.doEventSubscription<T>(name, fn);
@@ -43,7 +43,7 @@ export default class EventStore implements IEventStore {
     }
 
     publish<T>(name: string, data: T): void {
-        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' does not exist`);
+        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
 
         if (this.eventHandler.hasEvent(name)) {
             this.doPublishEvent<T>(name, data);
@@ -59,7 +59,7 @@ export default class EventStore implements IEventStore {
     }
 
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove) {
-        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' does not exist`);
+        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
 
         for (const event of eventsToRemove) {
             const stores: IStore[] = this.storeHandler.getStore(event);
@@ -89,8 +89,8 @@ export default class EventStore implements IEventStore {
     }
 
     group(name: string, events: string[], stores?: IStore[]): void {
-        if (this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Group with name '${name}' already exists`);
-        if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Group with name '${name}' already exists as an event`);
+        if (this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Group with name '${name}' already exists`);
+        if (this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Group with name '${name}' already exists as an event`);
 
         this.groupHandler.addGroup(name, events);
 

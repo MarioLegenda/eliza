@@ -16,6 +16,6 @@ export default class SubscriberCollection {
             }
         }
 
-        throw new Error('Error in EventStore. Subscription symbol does not exist');
+        throw new Error('Error in Eliza. Subscription symbol does not exist');
     }
 }

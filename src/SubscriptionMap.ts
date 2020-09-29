@@ -16,7 +16,7 @@ export default class SubscriptionMap {
     }
 
     remove(key: symbol) {
-        if (!this.has(key)) throw new Error('Error in EventStore. Subscription symbol does not exist');
+        if (!this.has(key)) throw new Error('Error in Eliza. Subscription symbol does not exist');
 
         delete this.map[key];
     }

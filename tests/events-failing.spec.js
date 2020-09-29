@@ -17,7 +17,7 @@ describe('Failing events', function() {
         try {
             eventStore.register(name);
         } catch (e) {
-            expect(e.message).to.be.equal(`Error in EventStore. Event with name '${name}' already exists`)
+            expect(e.message).to.be.equal(`Error in Eliza. Event with name '${name}' already exists`)
             done();
         }
     });
@@ -29,7 +29,7 @@ describe('Failing events', function() {
         try {
             eventStore.publish(eventName, {});
         } catch (e) {
-            expect(e.message).to.be.equal(`Error in EventStore. Event with name '${eventName}' does not exist`)
+            expect(e.message).to.be.equal(`Error in Eliza. Event with name '${eventName}' does not exist`)
             done();
         }
     });
@@ -41,7 +41,7 @@ describe('Failing events', function() {
         try {
             eventStore.publishRemove(eventName, {});
         } catch (e) {
-            expect(e.message).to.be.equal(`Error in EventStore. Event with name '${eventName}' does not exist`)
+            expect(e.message).to.be.equal(`Error in Eliza. Event with name '${eventName}' does not exist`)
             done();
         }
     });
@@ -53,7 +53,7 @@ describe('Failing events', function() {
         try {
             eventStore.subscribe(eventName, () => {});
         } catch (e) {
-            expect(e.message).to.be.equal(`Error in EventStore. Event or group with name '${eventName}' do not exist`)
+            expect(e.message).to.be.equal(`Error in Eliza. Event or group with name '${eventName}' do not exist`)
             done();
         }
     });
