@@ -33,9 +33,4 @@ export default class EventsHandler {
 
         return this.events[name];
     }
-
-    //TODO: delete this function and use getEvent()
-    getPublishableEvent<T>(name: string): IInternalEvent {
-        return this.getEvent<T>(name);
-    }
 }

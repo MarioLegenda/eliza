@@ -108,7 +108,7 @@ export default class EventStore implements IEventStore {
     }
 
     private doPublishEvent<T>(name: string, data: T, noStore: boolean = false): void {
-        const event: IInternalEvent = this.eventHandler.getPublishableEvent<T>(name);
+        const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
 
         if (!noStore) {
             if (this.storeHandler.hasStore(name)) {
@@ -152,7 +152,7 @@ export default class EventStore implements IEventStore {
     }
 
     private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>): symbol {
-        const event: IInternalEvent = this.eventHandler.getPublishableEvent<T>(name);
+        const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
 
         return event.subscriber.subscribe(fn);
     }
