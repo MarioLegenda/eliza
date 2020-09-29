@@ -34,6 +34,18 @@ describe('Failing events', function() {
         }
     });
 
+    it('should fail to publishRemove an event that does not exist', (done) => {
+        const eventName = 'notExists';
+        const eventStore = eliza.New();
+
+        try {
+            eventStore.publishRemove(eventName, {});
+        } catch (e) {
+            expect(e.message).to.be.equal(`Error in EventStore. Event with name '${eventName}' does not exist`)
+            done();
+        }
+    });
+
     it('should fail to subscribe to an event that does not exist', (done) => {
         const eventName = 'notExists';
         const eventStore = eliza.New();

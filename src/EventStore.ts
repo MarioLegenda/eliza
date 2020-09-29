@@ -1,4 +1,3 @@
-import {ReplaySubject, Subscription} from "rxjs";
 import deepcopy from "ts-deepcopy";
 
 import {
@@ -13,7 +12,6 @@ import {
 import StoreHandler from "./handlers/StoreHandler";
 import GroupHandler from "./handlers/GroupHandler";
 import EventsHandler from "./handlers/EventsHandler";
-import {OperatorFunction} from "rxjs/src/internal/types";
 
 export default class EventStore implements IEventStore {
     private readonly storeHandler: StoreHandler = new StoreHandler();
@@ -28,15 +26,15 @@ export default class EventStore implements IEventStore {
         this.doCreateEvent(name, stores);
     }
 
-    subscribe<T>(name: string, fn: ISubscriberFn<T>, op?: OperatorFunction<T, any>): Subscription {
+    subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol {
         if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in EventStore. Event or group with name '${name}' do not exist`);
 
         if (this.eventHandler.hasEvent(name)) {
-            return this.doEventSubscription<T>(name, fn, op);
+            return this.doEventSubscription<T>(name, fn);
         }
 
         if (this.groupHandler.groupExists(name)) {
-            return this.doGroupSubscription<T>(name, fn, op);
+            return this.doGroupSubscription<T>(name, fn);
         }
     }
 
@@ -57,6 +55,8 @@ export default class EventStore implements IEventStore {
     }
 
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove) {
+        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' does not exist`);
+
         for (const event of eventsToRemove) {
             const stores: IStore[] = this.storeHandler.getStore(event);
 
@@ -67,7 +67,17 @@ export default class EventStore implements IEventStore {
             }
         }
 
-        this.publish<T>(name, data);
+        if (this.eventHandler.hasEvent(name)) {
+            this.doPublishEvent<T>(name, data, true);
+        }
+
+        if (this.groupHandler.eventHasGroup(name)) {
+            const groups: string[] = this.groupHandler.getGroupsFromEvent(name);
+
+            for (const groupName of groups) {
+                this.doPublishGroup<T>(name, groupName, data, true);
+            }
+        }
     }
 
     snapshot(name: string): IStore[] {
@@ -89,75 +99,62 @@ export default class EventStore implements IEventStore {
         this.storeHandler.addStores(name, stores);
     }
 
-    private doPublishEvent<T>(name: string, data: T): void {
-        const event: IInternalEvent<T> = this.eventHandler.getPublishableEvent<T>(name);
+    private doPublishEvent<T>(name: string, data: T, noStore: boolean = false): void {
+        const event: IInternalEvent = this.eventHandler.getPublishableEvent<T>(name);
 
-        const copy = deepcopy<T>(data);
-        event.subject.next(copy);
+        if (!noStore) {
+            if (this.storeHandler.hasStore(name)) {
+                const stores: IStore[] = this.storeHandler.getStore(name);
 
-        if (this.storeHandler.hasStore(name)) {
-            const stores: IStore[] = this.storeHandler.getStore(name);
-
-            for (const db of stores) {
-                db.put<T>(name, data);
-            }
-        }
-    }
-
-    private doPublishGroup<T>(name: string, groupName: string, data: T): void {
-        const group: IInternalGroup<T> = this.groupHandler.getGroup(groupName);
-
-        if (!group.subject) {
-            group.subject = new ReplaySubject<T>();
-        }
-
-        // store the value in the event name stores
-        if (this.storeHandler.hasStore(name)) {
-            const stores: IStore[] = this.storeHandler.getStore(name);
-
-            for (const store of stores) {
-                store.put<T>(name, deepcopy<T>(data), group.name);
-            }
-        }
-
-        // store the value in the group store
-        if (this.storeHandler.hasStore(groupName)) {
-            const stores: IStore[] = this.storeHandler.getStore(groupName);
-
-            for (const store of stores) {
-                store.put<T>(name, deepcopy<T>(data), group.name);
+                for (const db of stores) {
+                    db.put<T>(name, data);
+                }
             }
         }
 
         const copy = deepcopy<T>(data);
-        group.subject.next(copy);
+        event.subscriber.publish(copy);
     }
 
-    private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>, op?: OperatorFunction<T, any>): Subscription {
-        const event: IInternalEvent<T> = this.eventHandler.getPublishableEvent<T>(name);
+    private doPublishGroup<T>(name: string, groupName: string, data: T, noStore: boolean = false): void {
+        const group: IInternalGroup = this.groupHandler.getGroup(groupName);
 
-        if (op) {
-            return (event.subject as ReplaySubject<T>).pipe(op).subscribe(fn);
+        if (!noStore) {
+            // store the value in the event name stores
+            if (this.storeHandler.hasStore(name)) {
+                const stores: IStore[] = this.storeHandler.getStore(name);
+
+                for (const store of stores) {
+                    store.put<T>(name, deepcopy<T>(data), group.name);
+                }
+            }
+
+            // store the value in the group store
+            if (this.storeHandler.hasStore(groupName)) {
+                const stores: IStore[] = this.storeHandler.getStore(groupName);
+
+                for (const store of stores) {
+                    store.put<T>(name, deepcopy<T>(data), group.name);
+                }
+            }
         }
 
-        return (event.subject as ReplaySubject<T>).subscribe(fn);
+        const copy = deepcopy<T>(data);
+        group.subscriber.publish(copy);
+    }
+
+    private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>): symbol {
+        const event: IInternalEvent = this.eventHandler.getPublishableEvent<T>(name);
+
+        return event.subscriber.subscribe(fn);
     }
 
     private doGroupSubscription<T>(
         name: string,
         fn: ISubscriberFn<T>,
-        op?: OperatorFunction<T, any>
-    ): Subscription {
-        const group: IInternalGroup<T> = this.groupHandler.getGroup<T>(name);
+    ): symbol {
+        const group: IInternalGroup = this.groupHandler.getGroup<T>(name);
 
-        if (!group.subject) {
-            group.subject = new ReplaySubject<T>();
-        }
-
-        if (op) {
-            return (group.subject as ReplaySubject<T>).pipe(op).subscribe(fn);
-        }
-
-        return (group.subject as ReplaySubject<T>).subscribe(fn);
+        return group.subscriber.subscribe(fn);
     }
 }

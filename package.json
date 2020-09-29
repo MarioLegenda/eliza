@@ -5,7 +5,6 @@
   "module": "dist/eliza.esm.js",
   "browser": "dist/eliza.umd.js",
   "dependencies": {
-    "rxjs": "^6.6.2",
     "ts-deepcopy": "^0.1.4"
   },
   "devDependencies": {

@@ -1,8 +1,8 @@
-import {ReplaySubject} from "rxjs";
 import {
     IInternalEvent,
     IInternalEventMap
 } from "../contracts";
+import Subscriber from "../Subscriber";
 
 export default class EventsHandler {
     private events: IInternalEventMap<any> = {};
@@ -12,27 +12,22 @@ export default class EventsHandler {
     }
 
     addEvent(name: string): void {
-        const evn: IInternalEvent<null> = {
+        const evn: IInternalEvent = {
             name: name,
-            subject: null,
+            subscriber: new Subscriber(),
         }
 
         this.events[name] = evn;
     }
 
-    getEvent<T>(name: string): IInternalEvent<T> {
+    getEvent<T>(name: string): IInternalEvent {
         if (!this.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' does not exist`);
 
         return this.events[name];
     }
 
-    getPublishableEvent<T>(name: string): IInternalEvent<T> {
-        const event: IInternalEvent<T> = this.getEvent<T>(name);
-
-        if (!event.subject) {
-            event.subject = new ReplaySubject<T>();
-        }
-
-        return event;
+    //TODO: delete this function and use getEvent()
+    getPublishableEvent<T>(name: string): IInternalEvent {
+        return this.getEvent<T>(name);
     }
 }

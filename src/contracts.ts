@@ -1,8 +1,8 @@
-import {OperatorFunction, ReplaySubject, Subscription} from "rxjs";
+import Subscriber from "./Subscriber";
 
 export interface IEventStore {
     register(name: string, stores?: IStore[]): void;
-    subscribe<T>(name: string, fn: ISubscriberFn<T>, op?: OperatorFunction<T, any>): Subscription;
+    subscribe<T>(name: string, fn: ISubscriberFn<T>): Subscription;
     publish<T>(name: string, data: T): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     snapshot(name: string): IStore[];
@@ -19,42 +19,36 @@ export interface IEventsToRemove {
     [name: string]: string,
 }
 
-export interface IInternalEvent<T> {
+export interface IInternalEvent {
     name: string,
-    subject: ReplaySubject<T> | null,
+    subscriber: Subscriber,
     store?: IStore,
 }
 
 export interface IInternalEventMap<T> {
-    [name: string]: IInternalEvent<T>;
-}
-
-export interface IInternalEvent<T> {
-    name: string,
-    subject: ReplaySubject<T> | null,
-    store?: IStore,
+    [name: string]: IInternalEvent;
 }
 
 export interface IInternalEventMap<T> {
-    [name: string]: IInternalEvent<T>;
+    [name: string]: IInternalEvent;
 }
 
 export interface InternalStoreMap {
     [name: string]: IStore[]
 }
 
-export interface InternalGroupMap<T> {
-    [name: string]: IInternalGroup<T>;
+export interface InternalGroupMap {
+    [name: string]: IInternalGroup;
 }
 
-export interface IInternalGroup<T> {
+export interface IInternalGroup {
     name: string,
     events: string[],
-    subject: ReplaySubject<T> | null,
+    subscriber: Subscriber,
 }
 
-export interface ISubscriber {
-    [name: string]: Subscription | null
+export interface InternalSubscriberMap {
+    [key: Symbol]: ISubscriberFn<any>,
 }
 
 export interface ISubscriberFn<T> {

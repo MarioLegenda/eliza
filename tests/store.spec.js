@@ -62,37 +62,21 @@ describe("Store tests", () => {
 
     it('should remove a value from store on publishRemove', (done) => {
         const eventStore = eliza.New();
+        const store = new ObjectStore();
+        store.put('event', {name: 'someName'});
+
         eventStore.register('event', [
-            new ObjectStore()
+            store,
         ]);
 
-        const calls = {
-            calledOnPublish: false,
-        }
-
-        eventStore.publish('event', {name: 'someName'});
+        eventStore.publishRemove('event', {}, ['event']);
 
         eventStore.subscribe('event', (value) => {
             const snapshot = eventStore.snapshot('event');
 
-            if (!calls.calledOnPublish) {
-                expect(snapshot[0].get().event).to.be.a('object');
-                expect(snapshot[0].get().event.name).to.be.equal('someName');
+            expect(Object.keys(snapshot[0].get()).length).to.be.equal(0);
 
-                calls.calledOnPublish = true;
-
-                // must be called inside subscribe() to avoid race conditions
-                eventStore.publishRemove('event', {}, ['event']);
-
-                return;
-            }
-
-            if (calls.calledOnPublish) {
-                expect(Object.keys(value).length).to.be.equal(0);
-                expect(Object.keys(snapshot[0].get()).length).to.be.equal(0);
-
-                done();
-            }
+            done();
         });
     });
 

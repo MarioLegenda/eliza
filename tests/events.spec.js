@@ -4,7 +4,6 @@ const chai = require('chai');
 const it = mocha.it;
 const describe = mocha.describe;
 const expect = chai.expect;
-const {map} = require('rxjs/operators');
 
 const eliza = require('../dist/eliza.cjs');
 
@@ -44,20 +43,142 @@ describe('Events', function() {
         eventStore.publish(eventName, eventValue);
     });
 
-    it('should apply an rxjs operator to a subscription result', (done) => {
+    it('should publish all buffered values to a subscriber', (done) => {
         const eventName = 'event';
-        const eventValue = 'eventValue';
+
+        const values = {
+            value1: false,
+            value2: false,
+            value3: false,
+        }
+
+        let called = 0;
 
         const eventStore = eliza.New();
         eventStore.register(eventName);
 
         eventStore.subscribe(eventName, (event) => {
-            expect(event).to.be.equal('new value');
-            done();
-        }, map(() => {
-            return 'new value';
-        }));
+            values[event] = true;
+            called++;
 
-        eventStore.publish(eventName, eventValue);
+            if (event === 'value1') {
+                expect(values.value1).to.be.true;
+                expect(values.value2).to.be.false;
+                expect(values.value3).to.be.false;
+            }
+
+            if (event === 'value2') {
+                expect(values.value1).to.be.true;
+                expect(values.value2).to.be.true;
+                expect(values.value3).to.be.false;
+            }
+
+            if (called === 3) {
+                const v = Object.values(values);
+
+                for (const b of v) {
+                    expect(b).to.be.true;
+                }
+
+                done();
+            }
+        });
+
+        eventStore.publish(eventName, 'value1');
+        eventStore.publish(eventName, 'value2');
+        eventStore.publish(eventName, 'value3');
+    });
+
+    it('should publish all buffered values to a all subscribers', (done) => {
+        const eventName = 'event';
+
+        const values1 = {
+            value1: false,
+            value2: false,
+            value3: false,
+        }
+
+        const values2 = {
+            value1: false,
+            value2: false,
+            value3: false,
+        }
+
+        let called1 = 0;
+        let called2 = 0;
+        let subscribersCalled = 0;
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        eventStore.subscribe(eventName, (event) => {
+            values1[event] = true;
+            called1++;
+
+            if (event === 'value1') {
+                expect(values1.value1).to.be.true;
+                expect(values1.value2).to.be.false;
+                expect(values1.value3).to.be.false;
+            }
+
+            if (event === 'value2') {
+                expect(values1.value1).to.be.true;
+                expect(values1.value2).to.be.true;
+                expect(values1.value3).to.be.false;
+            }
+
+            if (called1 === 3) {
+                const v = Object.values(values1);
+
+                for (const b of v) {
+                    expect(b).to.be.true;
+                }
+
+                if (subscribersCalled === 1) {
+                    done();
+
+                    return;
+                }
+
+                subscribersCalled++;
+            }
+        });
+
+        eventStore.subscribe(eventName, (event) => {
+            values2[event] = true;
+            called2++;
+
+            if (event === 'value1') {
+                expect(values2.value1).to.be.true;
+                expect(values2.value2).to.be.false;
+                expect(values2.value3).to.be.false;
+            }
+
+            if (event === 'value2') {
+                expect(values2.value1).to.be.true;
+                expect(values2.value2).to.be.true;
+                expect(values2.value3).to.be.false;
+            }
+
+            if (called2 === 3) {
+                const v = Object.values(values2);
+
+                for (const b of v) {
+                    expect(b).to.be.true;
+                }
+
+                if (subscribersCalled === 1) {
+                    done();
+
+                    return;
+                }
+
+                subscribersCalled++;
+            }
+        });
+
+        eventStore.publish(eventName, 'value1');
+        eventStore.publish(eventName, 'value2');
+        eventStore.publish(eventName, 'value3');
     });
 });

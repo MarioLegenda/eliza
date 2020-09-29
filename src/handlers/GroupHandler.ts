@@ -1,17 +1,17 @@
-import {ReplaySubject} from "rxjs";
 import {
     IInternalGroup,
     InternalGroupMap
 } from "../contracts";
+import Subscriber from "../Subscriber";
 
 export default class GroupHandler {
-    private readonly groups: InternalGroupMap<any> = {};
+    private readonly groups: InternalGroupMap = {};
 
     public addGroup(name: string, events: string[]) {
         this.groups[name] = {
             name: name,
             events: events,
-            subject: null,
+            subscriber: new Subscriber(),
         };
     }
 
@@ -30,7 +30,7 @@ export default class GroupHandler {
     }
 
     public getGroupsFromEvent(name: string): string[] {
-        const groups: string[] = Object.values(this.groups).filter((g: IInternalGroup<any>) => {
+        const groups: string[] = Object.values(this.groups).filter((g: IInternalGroup) => {
             return g.events.includes(name);
         }).map(g => g.name);
 
@@ -39,7 +39,7 @@ export default class GroupHandler {
         return groups;
     }
 
-    public getGroup<T>(name: string): IInternalGroup<T> {
+    public getGroup<T>(name: string): IInternalGroup {
         if (!this.groupExists(name)) throw new Error(`Error in EventStore. Group with name '${name}' does not exist`);
 
         return this.groups[name];
