@@ -3,14 +3,6 @@ import {InternalSubscriberMap, ISubscriberFn} from "./contracts";
 export default class SubscriptionMap {
     private map: InternalSubscriberMap = {};
 
-    private static inst: SubscriptionMap;
-
-    public static instance(): SubscriptionMap {
-        if (!SubscriptionMap.inst) SubscriptionMap.inst = new SubscriptionMap();
-
-        return SubscriptionMap.inst;
-    }
-
     add(key: symbol, fn: ISubscriberFn<any>) {
         this.map[key] = fn;
     }
@@ -24,6 +16,8 @@ export default class SubscriptionMap {
     }
 
     remove(key: symbol) {
+        if (!this.has(key)) throw new Error('Error in EventStore. Subscription symbol does not exist');
+
         delete this.map[key];
     }
 }

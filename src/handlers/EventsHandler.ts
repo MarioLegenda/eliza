@@ -16,7 +16,7 @@ export default class EventsHandler {
     }
 
     addEvent(name: string): void {
-        const s: Subscriber = new Subscriber();
+        const s: Subscriber = new Subscriber(new SubscriptionMap());
 
         this.subscriptionCollection.add(s);
 

@@ -1,17 +1,20 @@
-import {InternalSubscriberMap, ISubscriberFn} from "./contracts";
+import {ISubscriberFn} from "./contracts";
+import SubscriptionMap from "./SubscriptionMap";
 
 export default class Subscriber {
-    private map: InternalSubscriberMap = {};
     private empty: boolean = true;
 
     private buffer: any[] = [];
 
+    constructor(private readonly map: SubscriptionMap) {}
+
     subscribe(fn: ISubscriberFn<any>): symbol {
         const key: symbol = Symbol();
-        this.map[key] = fn;
+        this.map.add(key, fn);
+
         this.empty = false;
 
-        this.emptyBuffer(this.mapToArray());
+        this.emptyBuffer(this.map.getValues());
 
         return key;
     }
@@ -23,7 +26,7 @@ export default class Subscriber {
             return;
         }
 
-        const fns: ISubscriberFn<any>[] = this.mapToArray();
+        const fns: ISubscriberFn<any>[] = this.map.getValues();
 
         this.emptyBuffer(fns);
 
@@ -31,13 +34,13 @@ export default class Subscriber {
     }
 
     hasSubscriptionKey(key: symbol): boolean {
-        return !!this.map[key];
+        return this.map.has(key);
     }
 
     destroy(key: symbol): void {
-        delete this.map[key];
+        this.map.remove(key);
 
-        if (this.mapToArray().length === 0) {
+        if (this.map.getValues().length === 0) {
             this.empty = true;
         }
     }
@@ -61,9 +64,5 @@ export default class Subscriber {
                 this.buffer.splice(i, 1);
             }
         }
-    }
-
-    private mapToArray(): ISubscriberFn<any>[] {
-        return Object.getOwnPropertySymbols(this.map).map((s: symbol) => this.map[s]);
     }
 }

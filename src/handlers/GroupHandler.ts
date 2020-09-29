@@ -4,6 +4,7 @@ import {
 } from "../contracts";
 import Subscriber from "../Subscriber";
 import SubscriberCollection from "../SubscriberCollection";
+import SubscriptionMap from "../SubscriptionMap";
 
 export default class GroupHandler {
     private readonly groups: InternalGroupMap = {};
@@ -11,7 +12,7 @@ export default class GroupHandler {
     constructor(private readonly subscriptionCollection: SubscriberCollection) {}
 
     public addGroup(name: string, events: string[]) {
-        const s: Subscriber = new Subscriber();
+        const s: Subscriber = new Subscriber(new SubscriptionMap());
 
         this.subscriptionCollection.add(s);
 
