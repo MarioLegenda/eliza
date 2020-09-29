@@ -57,4 +57,23 @@ describe('Failing events', function() {
             done();
         }
     });
+
+    it('should throw an error if a subscription to destroy does not exist', () => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+        let errorEntered = false;
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        eventStore.publish(eventName, eventValue);
+
+        try {
+            eventStore.destroy(Symbol());
+        } catch (e) {
+            errorEntered = true;
+        }
+
+        expect(errorEntered).to.be.equal(true);
+    });
 });

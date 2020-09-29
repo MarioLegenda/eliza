@@ -12,11 +12,15 @@ import {
 import StoreHandler from "./handlers/StoreHandler";
 import GroupHandler from "./handlers/GroupHandler";
 import EventsHandler from "./handlers/EventsHandler";
+import SubscriberCollection from "./SubscriberCollection";
 
 export default class EventStore implements IEventStore {
-    private readonly storeHandler: StoreHandler = new StoreHandler();
-    private readonly eventHandler: EventsHandler = new EventsHandler();
-    private readonly groupHandler: GroupHandler = new GroupHandler();
+    constructor(
+        private readonly storeHandler: StoreHandler,
+        private readonly eventHandler: EventsHandler,
+        private readonly groupHandler: GroupHandler,
+        private readonly subscriptionCollection: SubscriberCollection,
+    ) {}
 
     register(name: string, stores?: IStore[]): void {
         if (this.eventHandler.hasEvent(name)) throw new Error(`Error in EventStore. Event with name '${name}' already exists`);
@@ -91,6 +95,10 @@ export default class EventStore implements IEventStore {
         this.groupHandler.addGroup(name, events);
 
         this.storeHandler.addStores(name, stores);
+    }
+
+    destroy(key: symbol) {
+        this.subscriptionCollection.destroy(key);
     }
 
     private doCreateEvent(name: string, stores?: IStore[]): void {

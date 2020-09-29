@@ -3,15 +3,22 @@ import {
     InternalGroupMap
 } from "../contracts";
 import Subscriber from "../Subscriber";
+import SubscriberCollection from "../SubscriberCollection";
 
 export default class GroupHandler {
     private readonly groups: InternalGroupMap = {};
 
+    constructor(private readonly subscriptionCollection: SubscriberCollection) {}
+
     public addGroup(name: string, events: string[]) {
+        const s: Subscriber = new Subscriber();
+
+        this.subscriptionCollection.add(s);
+
         this.groups[name] = {
             name: name,
             events: events,
-            subscriber: new Subscriber(),
+            subscriber: s,
         };
     }
 

@@ -30,6 +30,10 @@ export default class Subscriber {
         this.doPublish(fns, data);
     }
 
+    hasSubscriptionKey(key: symbol): boolean {
+        return !!this.map[key];
+    }
+
     destroy(key: symbol): void {
         delete this.map[key];
 

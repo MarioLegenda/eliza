@@ -7,6 +7,7 @@ export interface IEventStore {
     publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
     snapshot(name: string): IStore[];
     group(name: string, events: string[], stores?: IStore[]): void;
+    destroy(key: symbol): void;
 }
 
 export interface IStore {

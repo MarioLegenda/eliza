@@ -181,4 +181,18 @@ describe('Events', function() {
         eventStore.publish(eventName, 'value2');
         eventStore.publish(eventName, 'value3');
     });
+
+    it('should destroy an event subscription without throwing an error', () => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        eventStore.publish(eventName, eventValue);
+
+        const key = eventStore.subscribe(eventName, () => {});
+
+        eventStore.destroy(key);
+    });
 });
