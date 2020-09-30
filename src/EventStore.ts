@@ -33,6 +33,10 @@ export default class EventStore implements IEventStore {
     subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol {
         if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event or group with name '${name}' do not exist`);
 
+        if (this.storeHandler.hasStore(name)) {
+            this.doFirstSubscription<T>(name, fn);
+        }
+
         if (this.eventHandler.hasEvent(name)) {
             return this.doEventSubscription<T>(name, fn);
         }
@@ -164,5 +168,20 @@ export default class EventStore implements IEventStore {
         const group: IInternalGroup = this.groupHandler.getGroup<T>(name);
 
         return group.subscriber.subscribe<T>(fn);
+    }
+
+    private doFirstSubscription<T>(name: string, fn: ISubscriberFn<T>) {
+        type CombinedType = IInternalEvent | IInternalGroup;
+        let type: CombinedType = null;
+
+        if (this.eventHandler.hasEvent(name)) {
+            type = this.eventHandler.getEvent<T>(name);
+        } else {
+            type = this.groupHandler.getGroup<T>(name);
+        }
+
+        const store: IStore[] = this.storeHandler.getStore(name);
+
+        type.subscriber.once<T>(fn, store, true, false);
     }
 }

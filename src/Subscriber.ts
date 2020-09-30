@@ -8,15 +8,24 @@ export default class Subscriber {
 
     constructor(private readonly map: SubscriptionMap) {}
 
-    subscribe<T>(fn: ISubscriberFn<T>): symbol {
-        const key: symbol = Symbol();
-        this.map.add(key, fn);
+    addOnly<T>(fn: ISubscriberFn<T>) {
+        this.addToMap<T>(fn);
+    }
 
-        this.empty = false;
+    subscribe<T>(fn: ISubscriberFn<T>): symbol {
+        const key: symbol = this.addToMap<T>(fn);
 
         this.emptyBuffer(this.map.getValues());
 
         return key;
+    }
+
+    once<T>(fn: ISubscriberFn<T>, data: any, isStore: boolean, isOnce: boolean): void {
+        fn(data, {
+            isOnce: false,
+            isStreaming: false,
+            isStore: isStore,
+        });
     }
 
     publish<T>(data: T): void {
@@ -30,7 +39,7 @@ export default class Subscriber {
 
         this.emptyBuffer(fns);
 
-        this.doPublish(fns, data);
+        this.doPublish<T>(fns, data);
     }
 
     hasSubscriptionKey(key: symbol): boolean {
@@ -49,9 +58,13 @@ export default class Subscriber {
         return this.buffer.length === 0;
     }
 
-    private doPublish(fns: ISubscriberFn<any>[], data: any): void {
+    private doPublish<T>(fns: ISubscriberFn<T>[], data: any): void {
         for (const fn of fns) {
-            fn(data);
+            fn(data, {
+                isStore: false,
+                isStreaming: false,
+                isOnce: false,
+            });
         }
     }
 
@@ -64,5 +77,14 @@ export default class Subscriber {
                 this.buffer.splice(i, 1);
             }
         }
+    }
+
+    private addToMap<T>(fn: ISubscriberFn<T>): symbol {
+        const key: symbol = Symbol();
+        this.map.add(key, fn);
+
+        this.empty = false;
+
+        return key;
     }
 }

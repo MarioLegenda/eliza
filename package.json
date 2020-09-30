@@ -1,6 +1,6 @@
 {
   "name": "eliza-es",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "main": "dist/eliza.cjs.js",
   "module": "dist/eliza.esm.js",
   "browser": "dist/eliza.umd.js",
@@ -24,6 +24,9 @@
     "test": "npm run build && mocha --bail -R mocha-pretty-spec-reporter 'tests/**/*.js'"
   },
   "files": [
-    "dist"
+    "dist",
+    "types",
+    "README.md",
+    "package.json"
   ]
 }

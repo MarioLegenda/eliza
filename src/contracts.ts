@@ -52,8 +52,14 @@ export interface InternalSubscriberMap {
     [key: Symbol]: ISubscriberFn<any>,
 }
 
+export interface ISubscriptionMetadata {
+    isStore: boolean,
+    isStreaming: boolean,
+    isOnce: boolean,
+}
+
 export interface ISubscriberFn<T> {
-    (arg: T): void;
+    (arg: T, metadata: ISubscriptionMetadata): void;
 }
 
 export interface IDataBuffer<T> {

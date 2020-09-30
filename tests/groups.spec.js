@@ -54,6 +54,24 @@ describe('Groups', function() {
         eventStore.publish('event3', {name: 'event3'});
     });
 
+    it('should receive the store as the first value for first subscription', () => {
+        const eventStore = eliza.New();
+
+        eventStore.register('event', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.group('group', [
+            'event1',
+        ], [
+            new GroupStore(),
+        ]);
+
+        eventStore.subscribe('group', (value, metadata) => {
+            expect(metadata.isStore).to.be.true;
+        });
+    });
+
     it('should subscribe to a group and put the values into the group store', (done) => {
         const eventStore = eliza.New();
 
@@ -85,7 +103,9 @@ describe('Groups', function() {
             new GroupStore(),
         ]);
 
-        eventStore.subscribe('group', (value) => {
+        eventStore.subscribe('group', (value, metadata) => {
+            if (metadata.isStore) return;
+
             expect(eventNames.includes(value.name));
 
             numCalled++;

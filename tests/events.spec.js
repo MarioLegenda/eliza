@@ -6,6 +6,7 @@ const describe = mocha.describe;
 const expect = chai.expect;
 
 const eliza = require('../dist/eliza.cjs');
+const ObjectStore = require('./ObjectStore');
 
 describe('Events', function() {
     it('should register an event without error', () => {
@@ -22,7 +23,42 @@ describe('Events', function() {
 
         eventStore.publish(eventName, eventValue);
 
-        eventStore.subscribe(eventName, (event) => {
+        eventStore.subscribe(eventName, (event, metadata) => {
+            expect(metadata.isStore).to.be.false;
+            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isOnce).to.be.false;
+
+            expect(event).to.be.equal(eventValue);
+            done();
+        });
+    });
+
+    it('should receive a store on first subscription', (done) => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName, [new ObjectStore()]);
+
+        eventStore.publish(eventName, eventValue);
+
+        let called = 0;
+
+        eventStore.subscribe(eventName, (event, metadata) => {
+            if (called === 0) {
+                expect(metadata.isStore).to.be.true;
+                expect(metadata.isStreaming).to.be.false;
+                expect(metadata.isOnce).to.be.false;
+
+                called++;
+                
+                return;
+            }
+
+            expect(metadata.isStore).to.be.false;
+            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isOnce).to.be.false;
+
             expect(event).to.be.equal(eventValue);
             done();
         });
@@ -35,7 +71,11 @@ describe('Events', function() {
         const eventStore = eliza.New();
         eventStore.register(eventName);
 
-        eventStore.subscribe(eventName, (event) => {
+        eventStore.subscribe(eventName, (event, metadata) => {
+            expect(metadata.isStore).to.be.false;
+            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isOnce).to.be.false;
+
             expect(event).to.be.equal(eventValue);
             done();
         });
@@ -57,7 +97,11 @@ describe('Events', function() {
         const eventStore = eliza.New();
         eventStore.register(eventName);
 
-        eventStore.subscribe(eventName, (event) => {
+        eventStore.subscribe(eventName, (event, metadata) => {
+            expect(metadata.isStore).to.be.false;
+            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isOnce).to.be.false;
+
             values[event] = true;
             called++;
 
@@ -111,7 +155,11 @@ describe('Events', function() {
         const eventStore = eliza.New();
         eventStore.register(eventName);
 
-        eventStore.subscribe(eventName, (event) => {
+        eventStore.subscribe(eventName, (event, metadata) => {
+            expect(metadata.isStore).to.be.false;
+            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isOnce).to.be.false;
+
             values1[event] = true;
             called1++;
 
@@ -144,7 +192,11 @@ describe('Events', function() {
             }
         });
 
-        eventStore.subscribe(eventName, (event) => {
+        eventStore.subscribe(eventName, (event, metadata) => {
+            expect(metadata.isStore).to.be.false;
+            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isOnce).to.be.false;
+
             values2[event] = true;
             called2++;
 

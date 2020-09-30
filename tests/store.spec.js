@@ -44,7 +44,9 @@ describe("Store tests", () => {
 
         eventStore.publish('event', {name: 'someName'});
 
-        eventStore.subscribe('event', (value) => {
+        eventStore.subscribe('event', (value, metadata) => {
+            if (metadata.isStore) return;
+
             expect(value).to.be.a('object');
             expect(value.name).to.be.equal('someName');
 
@@ -71,7 +73,9 @@ describe("Store tests", () => {
 
         eventStore.publishRemove('event', {}, ['event']);
 
-        eventStore.subscribe('event', (value) => {
+        eventStore.subscribe('event', (value, metadata) => {
+            if (metadata.isStore) return;
+
             const snapshot = eventStore.snapshot('event');
 
             expect(Object.keys(snapshot[0].get()).length).to.be.equal(0);
@@ -93,7 +97,9 @@ describe("Store tests", () => {
             eventStore.snapshot(event)[0].put(event, {name: 'someName'});
         }
 
-        eventStore.subscribe('event1', (value) => {
+        eventStore.subscribe('event1', (value, metadata) => {
+            if (metadata.isStore) return;
+
             expect(value.name).to.be.equal('nonImportantValue');
 
             expect(Object.keys(eventStore.snapshot('event1')[0].get()).length).to.be.equal(0);
