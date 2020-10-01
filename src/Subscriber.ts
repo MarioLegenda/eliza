@@ -9,10 +9,6 @@ export default class Subscriber {
 
     constructor(private readonly map: SubscriptionMap) {}
 
-    addOnly<T>(fn: ISubscriberFn<T>) {
-        this.addToMap<T>(fn);
-    }
-
     subscribe<T>(fn: ISubscriberFn<T>): symbol {
         const key: symbol = this.addToMap<T>(fn);
 

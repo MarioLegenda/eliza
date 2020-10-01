@@ -11,7 +11,7 @@ const GroupStore = require('./GroupStore');
 
 describe('Groups', function() {
     this.timeout(5000);
-    
+
     it('should react to an event that is in a group', (done) => {
         const eventStore = eliza.New();
 
