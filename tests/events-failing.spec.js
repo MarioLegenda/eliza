@@ -76,4 +76,21 @@ describe('Failing events', function() {
 
         expect(errorEntered).to.be.equal(true);
     });
+
+    it('should fail if publish is both stream and once', () => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+        let errorEntered = false;
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        try {
+            eventStore.publish(eventName, eventValue, {stream: true, once: true});
+        } catch (e) {
+            errorEntered = true;
+        }
+
+        expect(errorEntered).to.be.true;
+    });
 });

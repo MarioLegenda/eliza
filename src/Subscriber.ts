@@ -5,6 +5,7 @@ export default class Subscriber {
     private empty: boolean = true;
 
     private buffer: IDataBuffer<any> = [];
+    private onceBuffer: IDataBuffer<any> = [];
 
     constructor(private readonly map: SubscriptionMap) {}
 
@@ -20,9 +21,21 @@ export default class Subscriber {
         return key;
     }
 
+    onceBuffered<T>(fn: ISubscriberFn<T>) {
+        for (const data of this.onceBuffer) {
+            fn(data, {
+                isOnce: true,
+                isStreaming: false,
+                isStore: false,
+            });
+        }
+
+        this.onceBuffer = [];
+    }
+
     once<T>(fn: ISubscriberFn<T>, data: any, isStore: boolean, isOnce: boolean): void {
         fn(data, {
-            isOnce: false,
+            isOnce: isOnce,
             isStreaming: false,
             isStore: isStore,
         });

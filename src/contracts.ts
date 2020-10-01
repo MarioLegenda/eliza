@@ -23,6 +23,7 @@ export interface IEventsToRemove {
 export interface IInternalEvent {
     name: string,
     subscriber: Subscriber,
+    onceSubscriptionBuffer: any[],
     store?: IStore,
 }
 
@@ -56,6 +57,11 @@ export interface ISubscriptionMetadata {
     isStore: boolean,
     isStreaming: boolean,
     isOnce: boolean,
+}
+
+export interface IPublishMetadata {
+    stream: boolean,
+    once: boolean,
 }
 
 export interface ISubscriberFn<T> {

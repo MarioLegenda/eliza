@@ -6,7 +6,7 @@ import {
     IInternalEvent,
     IInternalGroup,
     ISubscriberFn,
-    IEventStore
+    IEventStore, IPublishMetadata
 } from "./contracts";
 
 import StoreHandler from "./handlers/StoreHandler";
@@ -46,8 +46,30 @@ export default class EventStore implements IEventStore {
         }
     }
 
-    publish<T>(name: string, data: T): void {
+    once<T>(name: string, data: T) {
         if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
+
+        type CombinedType = IInternalEvent | IInternalGroup;
+        let type: CombinedType = null;
+
+        if (this.eventHandler.hasEvent(name)) {
+            type = this.eventHandler.getEvent<T>(name);
+        } else {
+            type = this.groupHandler.getGroup<T>(name);
+        }
+
+        type.subscriber.once<T>()
+    }
+
+    publish<T>(name: string, data: T, metadata?: IPublishMetadata): void {
+        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
+        if (metadata && metadata.once && metadata.stream)  throw new Error(`Error in Eliza. Cannot publish both as stream and once`);
+
+        if (metadata && metadata.once) {
+            this.saveOnceBuffer<T>(name, data);
+
+            return;
+        }
 
         if (this.eventHandler.hasEvent(name)) {
             this.doPublishEvent<T>(name, data);
@@ -183,5 +205,13 @@ export default class EventStore implements IEventStore {
         const store: IStore[] = this.storeHandler.getStore(name);
 
         type.subscriber.once<T>(fn, store, true, false);
+    }
+
+    private saveOnceBuffer<T>(name: string, data: T): void {
+        const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
+
+        event.onceSubscriptionBuffer.push(data);
+
+        return;
     }
 }

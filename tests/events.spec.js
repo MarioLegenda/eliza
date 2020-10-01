@@ -51,7 +51,7 @@ describe('Events', function() {
                 expect(metadata.isOnce).to.be.false;
 
                 called++;
-                
+
                 return;
             }
 
