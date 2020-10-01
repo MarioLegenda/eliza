@@ -10,6 +10,8 @@ const ObjectStore = require('./ObjectStore');
 const GroupStore = require('./GroupStore');
 
 describe('Groups', function() {
+    this.timeout(5000);
+    
     it('should react to an event that is in a group', (done) => {
         const eventStore = eliza.New();
 
@@ -130,5 +132,86 @@ describe('Groups', function() {
         eventStore.publish('event3', {name: 'event3'});
         eventStore.publish('event3', {name: 'event3'});
         eventStore.publish('event3', {name: 'event3'});
+    });
+
+    it('should publish once event as a group', (done) => {
+        const eventStore = eliza.New();
+
+        eventStore.register('event1', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.register('event2', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.register('event3', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.group('group', [
+            'event1',
+            'event2',
+            'event3',
+        ], [
+            new GroupStore(),
+        ]);
+
+        eventStore.once('group', (value, metadata) => {
+            expect(metadata.isOnce).to.be.equal(true);
+
+            done();
+        });
+
+        eventStore.publish('event1', {name: 'event1'});
+    });
+
+    it('should publish once group event and never publish to it again', (done) => {
+        const eventStore = eliza.New();
+
+        let calledOnce = false;
+        let calledTwice = false;
+
+        eventStore.register('event1', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.register('event2', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.register('event3', [
+            new ObjectStore(),
+        ]);
+
+        eventStore.group('group', [
+            'event1',
+            'event2',
+            'event3',
+        ], [
+            new GroupStore(),
+        ]);
+
+        eventStore.once('group', (value, metadata) => {
+            expect(metadata.isOnce).to.be.equal(true);
+            calledOnce = true;
+        });
+
+        eventStore.publish('event1', {name: 'event1'});
+
+        setTimeout(() => {
+            expect(calledOnce).to.be.equal(true);
+
+            eventStore.once('group', () => {
+                calledTwice = true;
+            });
+
+            eventStore.publish('event1', {name: 'event1'});
+
+            setTimeout(() => {
+                expect(calledTwice).to.be.false;
+                done();
+            }, 1000);
+        }, 1000);
     });
 });

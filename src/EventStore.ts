@@ -47,7 +47,7 @@ export default class EventStore implements IEventStore {
     }
 
     once<T>(name: string, fn: ISubscriberFn<T>): void {
-        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
+        if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event or group with name '${name}' do not exist`);
 
         type CombinedType = IInternalEvent | IInternalGroup;
         let type: CombinedType = null;

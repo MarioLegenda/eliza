@@ -9,6 +9,8 @@ const eliza = require('../dist/eliza.cjs');
 const ObjectStore = require('./ObjectStore');
 
 describe('Events', function() {
+    this.timeout(5000);
+
     it('should register an event without error', () => {
         const eventStore = eliza.New();
         eventStore.register('event');
@@ -259,7 +261,8 @@ describe('Events', function() {
             once: true,
         });
 
-        eventStore.once(eventName, (value) => {
+        eventStore.once(eventName, (value, metadata) => {
+            expect(metadata.isOnce).to.be.true;
             expect(eventValue).to.be.equal(value);
             done();
         });
@@ -277,17 +280,24 @@ describe('Events', function() {
             once: true,
         });
 
-        eventStore.once(eventName, (value) => {
+        eventStore.once(eventName, (value, metadata) => {
+            expect(metadata.isOnce).to.be.true;
             expect(eventValue).to.be.equal(value);
         });
 
-        eventStore.once(eventName, () => {
-            onceCalledTwice = true;
-        });
-
         setTimeout(() => {
-            expect(onceCalledTwice).to.be.false;
-            done();
+            eventStore.publish(eventName, eventValue, {
+                once: true,
+            });
+
+            eventStore.once(eventName, () => {
+                onceCalledTwice = true;
+            });
+
+            setTimeout(() => {
+                expect(onceCalledTwice).to.be.false;
+                done();
+            }, 1000);
         }, 1000);
     });
 });
