@@ -1,4 +1,4 @@
-import {IDataBuffer, ISubscriberFn} from "./contracts";
+import {IDataBuffer, ISubscriberFn, ISubscriptionMetadata} from "./contracts";
 import SubscriptionMap from "./SubscriptionMap";
 
 export default class Subscriber {
@@ -23,7 +23,7 @@ export default class Subscriber {
 
     onceBuffered<T>(fn: ISubscriberFn<T>) {
         for (const data of this.onceBuffer) {
-            fn(data, {
+            this.send<T>(fn, data, {
                 isOnce: true,
                 isStreaming: false,
                 isStore: false,
@@ -34,7 +34,7 @@ export default class Subscriber {
     }
 
     once<T>(fn: ISubscriberFn<T>, data: any, isStore: boolean, isOnce: boolean): void {
-        fn(data, {
+        this.send<T>(fn, data, {
             isOnce: isOnce,
             isStreaming: false,
             isStore: isStore,
@@ -73,7 +73,7 @@ export default class Subscriber {
 
     private doPublish<T>(fns: ISubscriberFn<T>[], data: any): void {
         for (const fn of fns) {
-            fn(data, {
+            this.send<T>(fn, data, {
                 isStore: false,
                 isStreaming: false,
                 isOnce: false,
@@ -99,5 +99,13 @@ export default class Subscriber {
         this.empty = false;
 
         return key;
+    }
+
+    private async send<T>(fn: ISubscriberFn<T>, data: T, metadata: ISubscriptionMetadata) {
+        fn(data, {
+            isStore: metadata.isStore,
+            isStreaming: metadata.isStreaming,
+            isOnce: metadata.isOnce,
+        });
     }
 }
