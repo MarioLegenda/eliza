@@ -20,13 +20,6 @@ export interface IEventsToRemove {
     [name: string]: string,
 }
 
-export interface IInternalEvent {
-    name: string,
-    subscriber: Subscriber,
-    onceSubscriptionBuffer: any[],
-    store?: IStore,
-}
-
 export interface IInternalEventMap<T> {
     [name: string]: IInternalEvent;
 }
@@ -47,6 +40,16 @@ export interface IInternalGroup {
     name: string,
     events: string[],
     subscriber: Subscriber,
+    onceAlreadySent: boolean,
+    onceSubscriptionBuffer: any,
+}
+
+export interface IInternalEvent {
+    name: string,
+    subscriber: Subscriber,
+    onceSubscriptionBuffer: any,
+    onceAlreadySent: boolean,
+    store?: IStore,
 }
 
 export interface InternalSubscriberMap {

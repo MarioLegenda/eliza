@@ -247,4 +247,47 @@ describe('Events', function() {
 
         eventStore.destroy(key);
     });
+
+    it('should publish once event and never publish to it again', (done) => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        eventStore.publish(eventName, eventValue, {
+            once: true,
+        });
+
+        eventStore.once(eventName, (value) => {
+            expect(eventValue).to.be.equal(value);
+            done();
+        });
+    });
+
+    it('should not publish to once again no more than one time to a single event', (done) => {
+        const eventName = 'event';
+        const eventValue = 'eventValue';
+        let onceCalledTwice = false;
+
+        const eventStore = eliza.New();
+        eventStore.register(eventName);
+
+        eventStore.publish(eventName, eventValue, {
+            once: true,
+        });
+
+        eventStore.once(eventName, (value) => {
+            expect(eventValue).to.be.equal(value);
+        });
+
+        eventStore.once(eventName, () => {
+            onceCalledTwice = true;
+        });
+
+        setTimeout(() => {
+            expect(onceCalledTwice).to.be.false;
+            done();
+        }, 1000);
+    });
 });

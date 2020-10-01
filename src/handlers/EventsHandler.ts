@@ -23,7 +23,8 @@ export default class EventsHandler {
         const evn: IInternalEvent = {
             name: name,
             subscriber: s,
-            onceSubscriptionBuffer: [],
+            onceSubscriptionBuffer: null,
+            onceAlreadySent: false,
         }
 
         this.events[name] = evn;

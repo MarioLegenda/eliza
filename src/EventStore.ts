@@ -46,7 +46,7 @@ export default class EventStore implements IEventStore {
         }
     }
 
-    once<T>(name: string, data: T) {
+    once<T>(name: string, fn: ISubscriberFn<T>): void {
         if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
 
         type CombinedType = IInternalEvent | IInternalGroup;
@@ -58,7 +58,10 @@ export default class EventStore implements IEventStore {
             type = this.groupHandler.getGroup<T>(name);
         }
 
-        type.subscriber.once<T>()
+        if (type.onceAlreadySent) return;
+
+        type.subscriber.once<T>(fn, type.onceSubscriptionBuffer, false, true);
+        type.onceAlreadySent = true;
     }
 
     publish<T>(name: string, data: T, metadata?: IPublishMetadata): void {
@@ -210,7 +213,7 @@ export default class EventStore implements IEventStore {
     private saveOnceBuffer<T>(name: string, data: T): void {
         const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
 
-        event.onceSubscriptionBuffer.push(data);
+        event.onceSubscriptionBuffer = data;
 
         return;
     }

@@ -20,6 +20,8 @@ export default class GroupHandler {
             name: name,
             events: events,
             subscriber: s,
+            onceAlreadySent: false,
+            onceSubscriptionBuffer: null,
         };
     }
 
