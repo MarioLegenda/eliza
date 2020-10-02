@@ -21,7 +21,7 @@ export default class Subscriber {
         for (const data of this.onceBuffer) {
             this.send<T>(fn, data, {
                 isOnce: true,
-                isStreaming: false,
+                isStream: false,
                 isStore: false,
             });
         }
@@ -29,10 +29,10 @@ export default class Subscriber {
         this.onceBuffer = [];
     }
 
-    once<T>(fn: ISubscriberFn<T>, data: any, isStore: boolean, isOnce: boolean): void {
+    once<T>(fn: ISubscriberFn<T>, data: any, isStore: boolean, isOnce: boolean) {
         this.send<T>(fn, data, {
             isOnce: isOnce,
-            isStreaming: false,
+            isStream: false,
             isStore: isStore,
         });
     }
@@ -71,7 +71,7 @@ export default class Subscriber {
         for (const fn of fns) {
             this.send<T>(fn, data, {
                 isStore: false,
-                isStreaming: false,
+                isStream: false,
                 isOnce: false,
             });
         }
@@ -100,7 +100,7 @@ export default class Subscriber {
     private async send<T>(fn: ISubscriberFn<T>, data: T, metadata: ISubscriptionMetadata) {
         fn(data, {
             isStore: metadata.isStore,
-            isStreaming: metadata.isStreaming,
+            isStream: metadata.isStream,
             isOnce: metadata.isOnce,
         });
     }

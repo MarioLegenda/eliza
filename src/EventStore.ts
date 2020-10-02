@@ -2,7 +2,6 @@ import deepcopy from "ts-deepcopy";
 
 import {
     IStore,
-    IEventsToRemove,
     IInternalEvent,
     IInternalGroup,
     ISubscriberFn,
@@ -44,18 +43,20 @@ export default class EventStore implements IEventStore {
         if (this.groupHandler.groupExists(name)) {
             return this.doGroupSubscription<T>(name, fn);
         }
+
+        throw new Error(`Error in Eliza. Subscription could not be found, either as an event or group. This might be a bug. Please, fill out an issue https://github.com/MarioLegenda/eliza/issues`);
     }
 
     once<T>(name: string, fn: ISubscriberFn<T>): void {
         if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event or group with name '${name}' do not exist`);
 
         type CombinedType = IInternalEvent | IInternalGroup;
-        let type: CombinedType = null;
+        let type: CombinedType;
 
         if (this.eventHandler.hasEvent(name)) {
-            type = this.eventHandler.getEvent<T>(name);
+            type = this.eventHandler.getEvent(name);
         } else {
-            type = this.groupHandler.getGroup<T>(name);
+            type = this.groupHandler.getGroup(name);
         }
 
         if (type.onceAlreadySent) return;
@@ -87,7 +88,7 @@ export default class EventStore implements IEventStore {
         }
     }
 
-    publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove) {
+    publishRemove<T>(name: string, data: T, eventsToRemove: string[]) {
         if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
 
         for (const event of eventsToRemove) {
@@ -113,8 +114,8 @@ export default class EventStore implements IEventStore {
         }
     }
 
-    snapshot<T>(name: string): IStore[] {
-        return this.storeHandler.getStore<T>(name);
+    snapshot(name: string): IStore[] {
+        return this.storeHandler.getStore(name);
     }
 
     group(name: string, events: string[], stores?: IStore[]): void {
@@ -137,7 +138,7 @@ export default class EventStore implements IEventStore {
     }
 
     private doPublishEvent<T>(name: string, data: T, noStore: boolean = false): void {
-        const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
+        const event: IInternalEvent = this.eventHandler.getEvent(name);
 
         if (!noStore) {
             if (this.storeHandler.hasStore(name)) {
@@ -181,7 +182,7 @@ export default class EventStore implements IEventStore {
     }
 
     private doEventSubscription<T>(name: string, fn: ISubscriberFn<T>): symbol {
-        const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
+        const event: IInternalEvent = this.eventHandler.getEvent(name);
 
         return event.subscriber.subscribe<T>(fn);
     }
@@ -190,19 +191,19 @@ export default class EventStore implements IEventStore {
         name: string,
         fn: ISubscriberFn<T>,
     ): symbol {
-        const group: IInternalGroup = this.groupHandler.getGroup<T>(name);
+        const group: IInternalGroup = this.groupHandler.getGroup(name);
 
         return group.subscriber.subscribe<T>(fn);
     }
 
     private doFirstSubscription<T>(name: string, fn: ISubscriberFn<T>) {
         type CombinedType = IInternalEvent | IInternalGroup;
-        let type: CombinedType = null;
+        let type: CombinedType;
 
         if (this.eventHandler.hasEvent(name)) {
-            type = this.eventHandler.getEvent<T>(name);
+            type = this.eventHandler.getEvent(name);
         } else {
-            type = this.groupHandler.getGroup<T>(name);
+            type = this.groupHandler.getGroup(name);
         }
 
         const store: IStore[] = this.storeHandler.getStore(name);
@@ -211,7 +212,7 @@ export default class EventStore implements IEventStore {
     }
 
     private saveOnceBuffer<T>(name: string, data: T): void {
-        const event: IInternalEvent = this.eventHandler.getEvent<T>(name);
+        const event: IInternalEvent = this.eventHandler.getEvent(name);
 
         event.onceSubscriptionBuffer = data;
 

@@ -5,7 +5,7 @@ export interface IEventStore {
     subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol;
     once<T>(name: string, fn: ISubscriberFn<T>): void;
     publish<T>(name: string, data: T, metadata?: IPublishMetadata): void;
-    publishRemove<T>(name: string, data: T, eventsToRemove: IEventsToRemove): void;
+    publishRemove<T>(name: string, data: T, eventsToRemove: string[]): void;
     snapshot(name: string): IStore[];
     group(name: string, events: string[], stores?: IStore[]): void;
     destroy(key: symbol): void;
@@ -15,10 +15,6 @@ export interface IStore {
     put<T>(eventName: string, value: T, groupName?: string): void;
     remove(eventName: string, value: any, groupName?: string[]): boolean;
     get(): any;
-}
-
-export interface IEventsToRemove {
-    [name: string]: string,
 }
 
 export interface IInternalEventMap<T> {
@@ -57,9 +53,15 @@ export interface InternalSubscriberMap {
     [key: Symbol]: ISubscriberFn<any>,
 }
 
+export interface IStream {
+    streamNum: number,
+    streaming: boolean,
+    streamsLeft: number,
+}
+
 export interface ISubscriptionMetadata {
     isStore: boolean,
-    isStreaming: boolean,
+    isStream: boolean,
     isOnce: boolean,
 }
 
@@ -72,8 +74,6 @@ export interface ISubscriberFn<T> {
     (arg: T, metadata: ISubscriptionMetadata): void;
 }
 
-export interface IDataBuffer<T> {
+export interface IDataBuffer<T> extends Array<any>{
     [idx: number]: any,
-    length: number,
-    push: (...[]: any) => void,
 }

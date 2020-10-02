@@ -27,7 +27,7 @@ describe('Events', function() {
 
         eventStore.subscribe(eventName, (event, metadata) => {
             expect(metadata.isStore).to.be.false;
-            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isStream).to.be.false;
             expect(metadata.isOnce).to.be.false;
 
             expect(event).to.be.equal(eventValue);
@@ -49,7 +49,7 @@ describe('Events', function() {
         eventStore.subscribe(eventName, (event, metadata) => {
             if (called === 0) {
                 expect(metadata.isStore).to.be.true;
-                expect(metadata.isStreaming).to.be.false;
+                expect(metadata.isStream).to.be.false;
                 expect(metadata.isOnce).to.be.false;
 
                 called++;
@@ -58,7 +58,7 @@ describe('Events', function() {
             }
 
             expect(metadata.isStore).to.be.false;
-            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isStream).to.be.false;
             expect(metadata.isOnce).to.be.false;
 
             expect(event).to.be.equal(eventValue);
@@ -75,7 +75,7 @@ describe('Events', function() {
 
         eventStore.subscribe(eventName, (event, metadata) => {
             expect(metadata.isStore).to.be.false;
-            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isStream).to.be.false;
             expect(metadata.isOnce).to.be.false;
 
             expect(event).to.be.equal(eventValue);
@@ -101,7 +101,7 @@ describe('Events', function() {
 
         eventStore.subscribe(eventName, (event, metadata) => {
             expect(metadata.isStore).to.be.false;
-            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isStream).to.be.false;
             expect(metadata.isOnce).to.be.false;
 
             values[event] = true;
@@ -159,7 +159,7 @@ describe('Events', function() {
 
         eventStore.subscribe(eventName, (event, metadata) => {
             expect(metadata.isStore).to.be.false;
-            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isStream).to.be.false;
             expect(metadata.isOnce).to.be.false;
 
             values1[event] = true;
@@ -196,7 +196,7 @@ describe('Events', function() {
 
         eventStore.subscribe(eventName, (event, metadata) => {
             expect(metadata.isStore).to.be.false;
-            expect(metadata.isStreaming).to.be.false;
+            expect(metadata.isStream).to.be.false;
             expect(metadata.isOnce).to.be.false;
 
             values2[event] = true;

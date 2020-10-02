@@ -49,7 +49,7 @@ export default class GroupHandler {
         return groups;
     }
 
-    public getGroup<T>(name: string): IInternalGroup {
+    public getGroup(name: string): IInternalGroup {
         if (!this.groupExists(name)) throw new Error(`Error in Eliza. Group with name '${name}' does not exist`);
 
         return this.groups[name];
