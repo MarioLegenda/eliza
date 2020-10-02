@@ -1,4 +1,4 @@
-import {IDataBuffer, ISubscriberFn, ISubscriptionMetadata} from "./contracts";
+import {IDataBuffer, IStream, ISubscriberFn, ISubscriptionMetadata} from "./contracts";
 import SubscriptionMap from "./SubscriptionMap";
 
 export default class Subscriber {
@@ -7,7 +7,13 @@ export default class Subscriber {
     private buffer: IDataBuffer<any> = [];
     private onceBuffer: IDataBuffer<any> = [];
 
+    private stream: IStream | null = null;
+
     constructor(private readonly map: SubscriptionMap) {}
+
+    startStream(stream: IStream): void {
+        this.stream = stream;
+    }
 
     subscribe<T>(fn: ISubscriberFn<T>): symbol {
         const key: symbol = this.addToMap<T>(fn);
@@ -98,9 +104,24 @@ export default class Subscriber {
     }
 
     private async send<T>(fn: ISubscriberFn<T>, data: T, metadata: ISubscriptionMetadata) {
+        let stream: IStream | undefined = undefined;
+
+        if (this.stream) {
+            stream = {
+                streamsLeft: --this.stream.streamsLeft,
+                streamNum: this.stream.streamNum,
+                streaming: true
+            }
+
+            if (stream.streamsLeft === 0) {
+                stream = undefined;
+            }
+        }
+
         fn(data, {
             isStore: metadata.isStore,
-            isStream: metadata.isStream,
+            isStream: !!(stream),
+            stream: stream,
             isOnce: metadata.isOnce,
         });
     }

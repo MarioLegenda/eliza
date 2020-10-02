@@ -3,6 +3,7 @@ import Subscriber from "./Subscriber";
 export interface IEventStore {
     register(name: string, stores?: IStore[]): void;
     subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol;
+    stream(name: string, streamNum: number): void;
     once<T>(name: string, fn: ISubscriberFn<T>): void;
     publish<T>(name: string, data: T, metadata?: IPublishMetadata): void;
     publishRemove<T>(name: string, data: T, eventsToRemove: string[]): void;
@@ -64,7 +65,7 @@ export interface ISubscriptionMetadata {
 }
 
 export interface IPublishMetadata {
-    stream: boolean,
+    stream: IStream,
     once: boolean,
 }
 
