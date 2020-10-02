@@ -59,6 +59,7 @@ export interface IStream {
 export interface ISubscriptionMetadata {
     isStore: boolean,
     isStream: boolean,
+    stream?: IStream,
     isOnce: boolean,
 }
 
