@@ -17,11 +17,7 @@ export interface IStore {
     get(): any;
 }
 
-export interface IInternalEventMap<T> {
-    [name: string]: IInternalEvent;
-}
-
-export interface IInternalEventMap<T> {
+export interface IInternalEventMap {
     [name: string]: IInternalEvent;
 }
 
@@ -50,6 +46,7 @@ export interface IInternalEvent {
 }
 
 export interface InternalSubscriberMap {
+    //@ts-ignore
     [key: Symbol]: ISubscriberFn<any>,
 }
 
@@ -74,6 +71,6 @@ export interface ISubscriberFn<T> {
     (arg: T, metadata: ISubscriptionMetadata): void;
 }
 
-export interface IDataBuffer<T> extends Array<any>{
+export interface IDataBuffer<T> extends Array<T>{
     [idx: number]: any,
 }
