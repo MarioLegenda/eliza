@@ -1,6 +1,6 @@
 {
   "name": "eliza-es",
-  "version": "0.3.0",
+  "version": "1.0.2",
   "main": "dist/eliza.cjs.js",
   "module": "dist/eliza.esm.js",
   "browser": "dist/eliza.umd.js",
