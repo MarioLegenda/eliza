@@ -66,7 +66,7 @@ export default class EventStore implements IEventStore {
     }
 
     stream(name: string, streamNum: number): void {
-        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
+        if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event or group with name '${name}' do not exist`);
 
         const event: IInternalEvent | IInternalGroup = this.getCombinedEvent(name);
         const stream: IStream = {

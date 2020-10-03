@@ -1,4 +1,6 @@
 declare module "eliza" {
+    declare function New(): IEventStore;
+
     export interface IEventStore {
         register(name: string, stores?: IStore[]): void;
         subscribe<T>(name: string, fn: ISubscriberFn<T>): symbol;

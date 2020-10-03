@@ -77,6 +77,21 @@ describe('Failing events', function() {
         expect(errorEntered).to.be.equal(true);
     });
 
+    it('should fail is event/group to stream does not exist', () => {
+        const eventName = 'event';
+        let errorEntered = false;
+
+        const eventStore = eliza.New();
+
+        try {
+            eventStore.stream(eventName, 10);
+        } catch (e) {
+            errorEntered = true;
+        }
+
+        expect(errorEntered).to.be.equal(true);
+    });
+
     it('should fail if publish is both stream and once', () => {
         const eventName = 'event';
         const eventValue = 'eventValue';
