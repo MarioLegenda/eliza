@@ -20,7 +20,7 @@ declare module "eliza" {
     }
 
     export interface ISubscriberFn<T> {
-        (arg: T): void;
+        (arg: T, metadata?: ISubscriptionMetadata): void;
     }
 
     export interface IStream {

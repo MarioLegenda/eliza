@@ -22,6 +22,7 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "console-coverage": "nyc --print=both -x '**/tests/*' -x '**/tests/*' --reporter=text npm run test",
     "test": "npm run build && mocha --bail -R mocha-pretty-spec-reporter 'tests/**/*.js'"
   },
   "files": [

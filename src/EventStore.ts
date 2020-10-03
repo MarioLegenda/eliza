@@ -79,8 +79,9 @@ export default class EventStore implements IEventStore {
     }
 
     publish<T>(name: string, data: T, metadata?: IPublishMetadata): void {
-        if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
-        if (metadata && metadata.once && metadata.stream)  throw new Error(`Error in Eliza. Cannot publish both as stream and once`);
+        if (!this.eventHandler.hasEvent(name) && !this.groupHandler.groupExists(name)) throw new Error(`Error in Eliza. Event or group with name '${name}' do not exist`);
+        
+        if (metadata && metadata.once && metadata.stream)  throw new Error(`Error in Eliza. Cannot publish event ${name} as both stream and once`);
 
         if (metadata && metadata.once) {
             this.saveOnceBuffer<T>(name, data);
@@ -103,6 +104,10 @@ export default class EventStore implements IEventStore {
 
     publishRemove<T>(name: string, data: T, eventsToRemove: string[]) {
         if (!this.eventHandler.hasEvent(name)) throw new Error(`Error in Eliza. Event with name '${name}' does not exist`);
+
+        for (const event of eventsToRemove) {
+            if (!this.eventHandler.hasEvent(event) && !this.groupHandler.groupExists(event)) throw new Error(`Error in Eliza. Event or group with name '${event}' do not exist`);
+        }
 
         for (const event of eventsToRemove) {
             const stores: IStore[] = this.storeHandler.getStore(event);
@@ -128,6 +133,8 @@ export default class EventStore implements IEventStore {
     }
 
     snapshot(name: string): IStore[] {
+        if (!this.storeHandler.hasStore(name)) throw new Error(`Error in Eliza. Store with name '${name}' does not exist`);
+
         return this.storeHandler.getStore(name);
     }
 
